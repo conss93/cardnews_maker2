@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>청새치웹 콘텐츠 생성기</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Noto+Serif+KR:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --brand: #1A5BB5;
+  --brand-light: #E6F1FB;
+  --brand-dark: #0C447C;
+  --bg: #f7f8fa;
+  --surface: #ffffff;
+  --border: #e2e6eb;
+  --text: #1a1d23;
+  --text-muted: #6b7280;
+  --text-faint: #9ca3af;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --font: 'Noto Sans KR', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --font-serif: 'Noto Serif KR', serif;
+  --card-w: 324px;
+  --card-h: 405px;
+}
+
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+/* LAYOUT */
+.app { display: grid; grid-template-columns: 360px 1fr; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo {
+  width: 34px; height: 34px;
+  background: var(--brand);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.logo svg { width: 20px; height: 20px; fill: white; }
+.logo-text { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.logo-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
+
+.sidebar-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+textarea, input[type="text"] {
+  width: 100%; font-family: var(--font); font-size: 14px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 12px; color: var(--text); background: var(--bg);
+  transition: border-color 0.15s;
+}
+textarea { min-height: 80px; resize: vertical; }
+textarea:focus, input:focus { outline: none; border-color: var(--brand); background: white; }
+
+.type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.type-btn {
+  padding: 9px 10px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--bg);
+  cursor: pointer; text-align: left; transition: all 0.12s;
+}
+.type-btn:hover { border-color: var(--brand); background: var(--brand-light); }
+.type-btn.active { border-color: var(--brand); background: var(--brand-light); }
+.type-btn .tn { font-size: 12px; font-weight: 500; color: var(--text); display: block; }
+.type-btn .td { font-size: 10px; color: var(--text-muted); margin-top: 2px; display: block; line-height: 1.4; }
+.type-btn.active .tn { color: var(--brand); }
+
+.gen-btn {
+  width: 100%; padding: 13px;
+  background: var(--brand); color: white;
+  border: none; border-radius: var(--radius);
+  font-family: var(--font); font-size: 14px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.gen-btn:hover { background: var(--brand-dark); }
+.gen-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.divider { height: 1px; background: var(--border); }
+
+/* Template selector */
+.template-scroll { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.tpl-btn {
+  padding: 9px 12px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--bg);
+  cursor: pointer; text-align: left; font-size: 13px;
+  color: var(--text); transition: all 0.12s; display: flex; align-items: center; gap: 8px;
+}
+.tpl-btn:hover { border-color: var(--brand); background: var(--brand-light); }
+.tpl-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); font-weight: 500; }
+.tpl-icon { font-size: 16px; width: 20px; text-align: center; }
+
+/* Watermark */
+.wm-upload {
+  border: 1.5px dashed var(--border); border-radius: var(--radius);
+  padding: 14px; text-align: center; cursor: pointer;
+  color: var(--text-muted); font-size: 13px; transition: all 0.15s;
+}
+.wm-upload:hover { border-color: var(--brand); color: var(--brand); }
+.wm-preview { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+.wm-preview img { height: 36px; border-radius: 4px; border: 1px solid var(--border); }
+.wm-clear { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: auto; }
+.wm-clear:hover { color: #e53e3e; }
+
+/* MAIN */
+.main { padding: 32px; }
+.main-header { margin-bottom: 24px; }
+.main-header h1 { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+
+/* Card strip */
+.cards-strip { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; }
+.card-wrapper { flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+.card-num { font-size: 11px; color: var(--text-muted); font-weight: 500; text-align: center; }
+
+/* The actual card */
+.card {
+  width: var(--card-w); height: var(--card-h);
+  position: relative; overflow: hidden;
+  border-radius: 12px; cursor: pointer;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+  flex-shrink: 0;
+}
+.card.selected { border-color: var(--brand); }
+.card-bg { position: absolute; inset: 0; }
+.card-content {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  padding: 24px 20px;
+}
+.card-title {
+  font-size: 18px; font-weight: 700; line-height: 1.35;
+  margin-bottom: 12px;
+}
+.card-image-area {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  margin: 8px 0; position: relative; overflow: hidden;
+}
+.card-image-area img {
+  width: 100%; height: 100%;
+}
+.card-image-placeholder {
+  width: 100%; height: 100%;
+  border: 1.5px dashed rgba(0,0,0,0.15);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+.card-body { font-size: 13px; line-height: 1.65; }
+.card-watermark {
+  position: absolute; right: 12px; bottom: 12px;
+  max-height: 28px; max-width: 80px; opacity: 0.75;
+}
+
+/* Edit panel */
+.edit-panel {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px; margin-top: 24px;
+}
+.edit-panel h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 14px; }
+.edit-fields { display: flex; flex-direction: column; gap: 10px; }
+.edit-fields label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+.edit-fields textarea { font-size: 13px; min-height: 60px; }
+
+/* Image fit controls */
+.fit-controls { display: flex; gap: 6px; margin-top: 6px; }
+.fit-btn {
+  padding: 5px 10px; border: 1px solid var(--border);
+  border-radius: 6px; font-size: 12px; cursor: pointer;
+  background: var(--bg); color: var(--text-muted); transition: all 0.12s;
+}
+.fit-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
+
+/* Image upload for card */
+.img-upload-btn {
+  padding: 7px 12px; border: 1px dashed var(--border);
+  border-radius: var(--radius); font-size: 12px; cursor: pointer;
+  color: var(--text-muted); background: var(--bg); width: 100%;
+  text-align: center; transition: all 0.12s;
+}
+.img-upload-btn:hover { border-color: var(--brand); color: var(--brand); }
+.img-remove { font-size: 12px; color: #e53e3e; cursor: pointer; margin-top: 4px; display: inline-block; }
+
+/* Download & Caption */
+.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+.action-btn {
+  padding: 9px 16px; border: 1px solid var(--border);
+  border-radius: var(--radius); font-size: 13px; cursor: pointer;
+  background: var(--surface); color: var(--text); transition: all 0.12s;
+  display: flex; align-items: center; gap: 6px; font-family: var(--font);
+}
+.action-btn:hover { border-color: var(--brand); color: var(--brand); }
+.action-btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
+.action-btn.primary:hover { background: var(--brand-dark); }
+
+.caption-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 20px; margin-top: 24px;
+}
+.caption-box h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 12px; }
+.caption-text {
+  font-size: 14px; line-height: 1.75; color: var(--text);
+  white-space: pre-wrap; background: var(--bg);
+  border-radius: var(--radius); padding: 14px;
+  min-height: 80px;
+}
+
+/* Spinner */
+.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  min-height: 400px; color: var(--text-faint); gap: 12px;
+}
+.empty-state svg { opacity: 0.25; }
+.empty-state p { font-size: 14px; }
+
+/* ============ TEMPLATES ============ */
+
+/* 1. MINIMAL (default) */
+.tpl-minimal .card-bg { background: #f0f4ff; }
+.tpl-minimal .card-title { color: #1A5BB5; }
+.tpl-minimal .card-body { color: #334155; }
+.tpl-minimal .card-image-placeholder { border-color: rgba(26,91,181,0.2); color: rgba(26,91,181,0.4); }
+
+/* 2. CHROME BROWSER */
+.tpl-chrome .card-bg { background: #f1f3f4; }
+.tpl-chrome .card-content { padding: 0; }
+.tpl-chrome .chrome-bar {
+  background: #dee1e6; padding: 8px 10px;
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+}
+.tpl-chrome .chrome-dots { display: flex; gap: 4px; }
+.tpl-chrome .chrome-dot { width: 8px; height: 8px; border-radius: 50%; }
+.tpl-chrome .chrome-dot:nth-child(1) { background: #ff5f57; }
+.tpl-chrome .chrome-dot:nth-child(2) { background: #ffbd2e; }
+.tpl-chrome .chrome-dot:nth-child(3) { background: #28c840; }
+.tpl-chrome .chrome-url {
+  flex: 1; background: white; border-radius: 99px;
+  padding: 4px 12px; font-size: 10px; color: #5f6368;
+  font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.tpl-chrome .chrome-body {
+  flex: 1; background: white; padding: 18px 16px;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.tpl-chrome .card-title { color: #1a73e8; font-size: 16px; text-decoration: underline; }
+.tpl-chrome .card-body { color: #202124; }
+
+/* 3. KAKAO */
+.tpl-kakao .card-bg { background: #b2c7d9; }
+.tpl-kakao .card-content { padding: 16px 14px; gap: 8px; }
+.tpl-kakao .kakao-header {
+  font-size: 11px; color: #4a4a4a; text-align: center; margin-bottom: 4px;
+}
+.tpl-kakao .bubble-left, .tpl-kakao .bubble-right { display: flex; flex-direction: column; }
+.tpl-kakao .bubble-left { align-items: flex-start; }
+.tpl-kakao .bubble-right { align-items: flex-end; }
+.tpl-kakao .bubble {
+  padding: 10px 12px; border-radius: 12px; max-width: 85%;
+  font-size: 12px; line-height: 1.6;
+}
+.tpl-kakao .bubble-left .bubble { background: white; color: #1a1a1a; border-top-left-radius: 2px; }
+.tpl-kakao .bubble-right .bubble { background: #fee500; color: #1a1a1a; border-top-right-radius: 2px; }
+.tpl-kakao .bubble-name { font-size: 10px; color: #4a4a4a; margin-bottom: 3px; }
+
+/* 4. NOTION */
+.tpl-notion .card-bg { background: #ffffff; }
+.tpl-notion .card-content { padding: 28px 22px; }
+.tpl-notion .notion-icon { font-size: 28px; margin-bottom: 8px; }
+.tpl-notion .card-title { font-size: 17px; color: #37352f; font-weight: 700; }
+.tpl-notion .notion-divider { height: 1px; background: #e9e9e7; margin: 10px 0; flex-shrink: 0; }
+.tpl-notion .card-body { color: #37352f; font-size: 13px; }
+.tpl-notion .notion-tag {
+  display: inline-block; padding: 2px 8px; border-radius: 4px;
+  background: #e8f0fe; color: #1A5BB5; font-size: 11px; margin-bottom: 8px;
+}
+
+/* 5. NEWS */
+.tpl-news .card-bg { background: #fafafa; }
+.tpl-news .card-content { padding: 0; }
+.tpl-news .news-header {
+  background: #1A5BB5; color: white; padding: 8px 16px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
+  text-transform: uppercase; flex-shrink: 0;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tpl-news .news-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; overflow: hidden; }
+.tpl-news .card-title { font-family: var(--font-serif); font-size: 17px; color: #111; line-height: 1.3; }
+.tpl-news .news-byline { font-size: 10px; color: #888; margin: 6px 0 10px; font-style: italic; }
+.tpl-news .news-rule { height: 2px; background: #1A5BB5; margin-bottom: 10px; flex-shrink: 0; }
+.tpl-news .card-body { font-size: 12px; color: #333; column-count: 1; }
+
+/* 6. NEWSPAPER */
+.tpl-newspaper .card-bg { background: #f5f0e8; }
+.tpl-newspaper .card-content { padding: 16px; }
+.tpl-newspaper .np-masthead {
+  text-align: center; border-top: 3px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
+  padding: 4px 0; margin-bottom: 10px; flex-shrink: 0;
+  font-family: var(--font-serif); font-size: 10px; color: #555; letter-spacing: 0.15em;
+}
+.tpl-newspaper .card-title {
+  font-family: var(--font-serif); font-size: 20px; font-weight: 700;
+  color: #111; line-height: 1.2; border-bottom: 1px solid #999; padding-bottom: 8px;
+}
+.tpl-newspaper .card-body { font-family: var(--font-serif); font-size: 12px; color: #222; line-height: 1.7; }
+.tpl-newspaper .np-date { font-size: 10px; color: #777; margin-top: auto; padding-top: 8px; border-top: 1px solid #ccc; }
+
+/* 7. MEMO */
+.tpl-memo .card-bg {
+  background: #fffde7;
+  background-image: repeating-linear-gradient(transparent, transparent 27px, #c8d8e8 27px, #c8d8e8 28px);
+}
+.tpl-memo .card-content { padding: 20px 20px 20px 48px; }
+.tpl-memo .memo-line {
+  position: absolute; left: 40px; top: 0; bottom: 0; width: 1px; background: #f8bbd0; opacity: 0.8;
+}
+.tpl-memo .card-title { font-size: 17px; font-weight: 700; color: #1a237e; line-height: 1.4; }
+.tpl-memo .card-body { font-size: 13px; color: #1a1a2e; line-height: 1.9; }
+
+/* 8. RECEIPT */
+.tpl-receipt .card-bg { background: #fff9f0; }
+.tpl-receipt .card-content { padding: 20px 18px; font-family: var(--font-mono); }
+.tpl-receipt .receipt-header { text-align: center; margin-bottom: 12px; flex-shrink: 0; }
+.tpl-receipt .receipt-shop { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.tpl-receipt .receipt-sub { font-size: 10px; color: #888; margin-top: 2px; }
+.tpl-receipt .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 8px 0; flex-shrink: 0; }
+.tpl-receipt .receipt-row { display: flex; justify-content: space-between; font-size: 11px; color: #333; margin: 4px 0; }
+.tpl-receipt .receipt-total { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+.tpl-receipt .card-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
+.tpl-receipt .card-body { font-size: 11px; color: #444; line-height: 1.8; }
+
+/* 9. TERMINAL */
+.tpl-terminal .card-bg { background: #0d1117; }
+.tpl-terminal .card-content { padding: 0; }
+.tpl-terminal .term-bar {
+  background: #21262d; padding: 8px 12px; display: flex;
+  align-items: center; gap: 6px; flex-shrink: 0;
+}
+.tpl-terminal .term-dots { display: flex; gap: 4px; }
+.tpl-terminal .term-dot { width: 8px; height: 8px; border-radius: 50%; }
+.tpl-terminal .term-dot:nth-child(1) { background: #ff5f57; }
+.tpl-terminal .term-dot:nth-child(2) { background: #ffbd2e; }
+.tpl-terminal .term-dot:nth-child(3) { background: #28c840; }
+.tpl-terminal .term-title { font-size: 11px; color: #8b949e; font-family: var(--font-mono); margin: 0 auto; }
+.tpl-terminal .term-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; overflow: hidden; }
+.tpl-terminal .term-prompt { font-family: var(--font-mono); font-size: 11px; color: #58a6ff; margin-bottom: 6px; flex-shrink: 0; }
+.tpl-terminal .card-title { font-family: var(--font-mono); font-size: 14px; color: #39d353; font-weight: 500; line-height: 1.4; }
+.tpl-terminal .card-body { font-family: var(--font-mono); font-size: 11px; color: #c9d1d9; line-height: 1.7; margin-top: 8px; }
+.tpl-terminal .term-cursor { display: inline-block; width: 8px; height: 14px; background: #39d353; margin-left: 2px; animation: blink 1s infinite; vertical-align: middle; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg viewBox="0 0 24 24"><path d="M3 12 C6 6 12 4 20 8 L22 7 L20 10 C22 12 20 16 14 17 L10 22 L10 17 C7 17 4 15 3 12Z"/></svg>
+      </div>
+      <div>
+        <div class="logo-text">청새치웹</div>
+        <div class="logo-sub">콘텐츠 생성기</div>
+      </div>
+    </div>
+
+    <div class="sidebar-body">
+      <!-- Topic -->
+      <div class="field-group">
+        <span class="field-label">콘텐츠 주제</span>
+        <textarea id="topic" placeholder="예: 인스타만 있는데 홈페이지가 필요한가요?&#10;예: 아임웹 vs Sixshop 비교&#10;예: 홈페이지 만들기 전 준비사항"></textarea>
+      </div>
+
+      <!-- Type -->
+      <div class="field-group">
+        <span class="field-label">콘텐츠 유형</span>
+        <div class="type-grid">
+          <button class="type-btn active" data-type="awareness" onclick="selectType(this)">
+            <span class="tn">인식 확장형</span>
+            <span class="td">공감→반전→정보→CTA</span>
+          </button>
+          <button class="type-btn" data-type="info" onclick="selectType(this)">
+            <span class="tn">정보 제공형</span>
+            <span class="td">비교/정리→결론→CTA</span>
+          </button>
+          <button class="type-btn" data-type="quiz" onclick="selectType(this)">
+            <span class="tn">자가진단형</span>
+            <span class="td">훅→체크리스트→CTA</span>
+          </button>
+          <button class="type-btn" data-type="case" onclick="selectType(this)">
+            <span class="tn">사례/Before-After</span>
+            <span class="td">문제→변화→결과→CTA</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generate -->
+      <button class="gen-btn" id="genBtn" onclick="generate()">
+        <span id="genLabel">콘텐츠 생성하기</span>
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Template -->
+      <div class="field-group">
+        <span class="field-label">카드 템플릿</span>
+        <div class="template-scroll">
+          <button class="tpl-btn active" data-tpl="minimal" onclick="selectTemplate(this)"><span class="tpl-icon">🎨</span> 미니멀</button>
+          <button class="tpl-btn" data-tpl="chrome" onclick="selectTemplate(this)"><span class="tpl-icon">🌐</span> 크롬 브라우저형</button>
+          <button class="tpl-btn" data-tpl="kakao" onclick="selectTemplate(this)"><span class="tpl-icon">💬</span> 카카오톡 대화형</button>
+          <button class="tpl-btn" data-tpl="notion" onclick="selectTemplate(this)"><span class="tpl-icon">📋</span> 노션형</button>
+          <button class="tpl-btn" data-tpl="news" onclick="selectTemplate(this)"><span class="tpl-icon">📰</span> 뉴스 기사형</button>
+          <button class="tpl-btn" data-tpl="newspaper" onclick="selectTemplate(this)"><span class="tpl-icon">🗞️</span> 신문형</button>
+          <button class="tpl-btn" data-tpl="memo" onclick="selectTemplate(this)"><span class="tpl-icon">📝</span> 메모장형</button>
+          <button class="tpl-btn" data-tpl="receipt" onclick="selectTemplate(this)"><span class="tpl-icon">🧾</span> 영수증형</button>
+          <button class="tpl-btn" data-tpl="terminal" onclick="selectTemplate(this)"><span class="tpl-icon">💻</span> 터미널형</button>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Watermark -->
+      <div class="field-group">
+        <span class="field-label">워터마크</span>
+        <div class="wm-upload" onclick="document.getElementById('wmFile').click()">
+          워터마크 이미지 업로드 (PNG 권장)
+        </div>
+        <input type="file" id="wmFile" accept="image/*" style="display:none" onchange="loadWatermark(this)">
+        <div class="wm-preview" id="wmPreview" style="display:none">
+          <img id="wmImg" src="" alt="워터마크">
+          <span class="wm-clear" onclick="clearWatermark()">삭제</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-header">
+      <h1 id="mainTitle">주제를 입력하고 콘텐츠를 생성해주세요</h1>
+    </div>
+
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+        <rect x="8" y="8" width="48" height="48" rx="8" stroke="#9ca3af" stroke-width="2"/>
+        <path d="M20 32h24M20 22h24M20 42h16" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p>생성된 카드뉴스가 여기에 표시됩니다</p>
+    </div>
+
+    <!-- Cards -->
+    <div class="cards-strip" id="cardsStrip" style="display:none"></div>
+
+    <!-- Edit panel -->
+    <div class="edit-panel" id="editPanel" style="display:none">
+      <h2 id="editPanelTitle">장 편집</h2>
+      <div class="edit-fields">
+        <div>
+          <label>제목</label>
+          <textarea id="editTitle" rows="2" oninput="applyEdit()"></textarea>
+        </div>
+        <div>
+          <label>본문</label>
+          <textarea id="editBody" rows="4" oninput="applyEdit()"></textarea>
+        </div>
+        <div>
+          <label>카드 이미지</label>
+          <div class="img-upload-btn" onclick="document.getElementById('cardImgFile').click()">＋ 이미지 추가</div>
+          <input type="file" id="cardImgFile" accept="image/*" style="display:none" onchange="loadCardImage(this)">
+          <span class="img-remove" id="imgRemoveBtn" style="display:none" onclick="removeCardImage()">이미지 삭제</span>
+          <div class="fit-controls" id="fitControls" style="display:none">
+            <button class="fit-btn active" data-fit="cover" onclick="setFit(this)">채우기</button>
+            <button class="fit-btn" data-fit="contain" onclick="setFit(this)">맞추기</button>
+            <button class="fit-btn" data-fit="none" onclick="setFit(this)">원본크기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions" id="actionsRow" style="display:none">
+      <button class="action-btn primary" onclick="downloadSelected()">📥 PNG 저장 (선택 장)</button>
+      <button class="action-btn" onclick="downloadAll()">📦 전체 저장</button>
+      <button class="action-btn" onclick="copyCaption()">📋 캡션 복사</button>
+    </div>
+
+    <!-- Caption -->
+    <div class="caption-box" id="captionBox" style="display:none">
+      <h2>인스타그램 캡션</h2>
+      <div class="caption-text" id="captionText"></div>
+    </div>
+  </main>
+</div>
+
+<script>
+const TEMPLATES = ['minimal','chrome','kakao','notion','news','newspaper','memo','receipt','terminal'];
+
+let state = {
+  cards: [],
+  caption: '',
+  selectedIdx: 0,
+  template: 'minimal',
+  watermark: null,
+};
+
+// ── Type selection ──
+let selectedType = 'awareness';
+function selectType(el) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selectedType = el.dataset.type;
+}
+
+// ── Template selection ──
+function selectTemplate(el) {
+  document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.template = el.dataset.tpl;
+  renderCards();
+}
+
+// ── Watermark ──
+function loadWatermark(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    state.watermark = e.target.result;
+    document.getElementById('wmImg').src = e.target.result;
+    document.getElementById('wmPreview').style.display = 'flex';
+    renderCards();
+  };
+  reader.readAsDataURL(file);
+}
+function clearWatermark() {
+  state.watermark = null;
+  document.getElementById('wmPreview').style.display = 'none';
+  document.getElementById('wmFile').value = '';
+  renderCards();
+}
+
+// ── Generate ──
+async function generate() {
+  const topic = document.getElementById('topic').value.trim();
+  if (!topic) { alert('주제를 입력해주세요.'); return; }
+
+  const btn = document.getElementById('genBtn');
+  const label = document.getElementById('genLabel');
+  btn.disabled = true;
+  label.innerHTML = '<div class="spinner"></div> 생성 중...';
+
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ topic, contentType: selectedType }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'API 오류');
+    parseResult(data.result, topic);
+  } catch(e) {
+    alert('생성 실패: ' + e.message);
+  }
+
+  btn.disabled = false;
+  label.textContent = '콘텐츠 생성하기';
+}
+
+function parseResult(text, topic) {
+  const captionMatch = text.match(/\[캡션\]([\s\S]*)/);
+  const captionRaw = captionMatch ? captionMatch[1].trim() : '';
+  const cardsRaw = captionMatch ? text.slice(0, captionMatch.index) : text;
+
+  const cardBlocks = cardsRaw.split(/---+/).filter(b => b.trim());
+  const cards = cardBlocks.map(block => {
+    const titleMatch = block.match(/제목[:：]\s*(.+)/);
+    const bodyMatch = block.match(/본문[:：]\s*([\s\S]+)/);
+    const numMatch = block.match(/\[(\d+)장[^\]]*\]/);
+    return {
+      num: numMatch ? parseInt(numMatch[1]) : 0,
+      title: titleMatch ? titleMatch[1].trim() : '',
+      body: bodyMatch ? bodyMatch[1].trim() : block.trim(),
+      image: null,
+      fit: 'cover',
+    };
+  }).filter(c => c.title || c.body);
+
+  state.cards = cards;
+  state.caption = captionRaw;
+  state.selectedIdx = 0;
+
+  document.getElementById('mainTitle').textContent = topic;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('cardsStrip').style.display = 'flex';
+  document.getElementById('editPanel').style.display = 'block';
+  document.getElementById('actionsRow').style.display = 'flex';
+  document.getElementById('captionBox').style.display = 'block';
+  document.getElementById('captionText').textContent = captionRaw;
+
+  renderCards();
+  selectCard(0);
+}
+
+// ── Render all cards ──
+function renderCards() {
+  const strip = document.getElementById('cardsStrip');
+  strip.innerHTML = '';
+  state.cards.forEach((card, i) => {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'card-wrapper';
+    wrapper.innerHTML = `<div class="card-num">${i + 1}장${i === 0 ? ' (썸네일)' : ''}</div>`;
+    const cardEl = buildCard(card, i);
+    wrapper.appendChild(cardEl);
+    strip.appendChild(wrapper);
+  });
+}
+
+function buildCard(card, idx) {
+  const tpl = state.template;
+  const el = document.createElement('div');
+  el.className = `card tpl-${tpl}${idx === state.selectedIdx ? ' selected' : ''}`;
+  el.onclick = () => selectCard(idx);
+  el.dataset.idx = idx;
+
+  const bg = document.createElement('div');
+  bg.className = 'card-bg';
+  el.appendChild(bg);
+
+  const content = document.createElement('div');
+  content.className = 'card-content';
+
+  if (tpl === 'chrome') {
+    content.innerHTML = `
+      <div class="chrome-bar">
+        <div class="chrome-dots"><div class="chrome-dot"></div><div class="chrome-dot"></div><div class="chrome-dot"></div></div>
+        <div class="chrome-url">청새치웹.com/content/${idx+1}</div>
+      </div>
+      <div class="chrome-body">
+        <div class="card-title">${card.title}</div>
+        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+        <div class="card-body">${card.body}</div>
+      </div>`;
+  } else if (tpl === 'kakao') {
+    content.innerHTML = `
+      <div class="kakao-header">오늘 오후 2:34</div>
+      <div class="bubble-left"><div class="bubble-name">청새치웹</div><div class="bubble">${card.title}</div></div>
+      ${card.image ? `<div class="card-image-area" style="max-height:120px">${imgEl(card)}</div>` : ''}
+      <div class="bubble-right"><div class="bubble">${card.body}</div></div>`;
+  } else if (tpl === 'notion') {
+    content.innerHTML = `
+      <div class="notion-tag"># 청새치웹</div>
+      <div class="notion-icon">📌</div>
+      <div class="card-title">${card.title}</div>
+      <div class="notion-divider"></div>
+      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+      <div class="card-body">${card.body}</div>`;
+  } else if (tpl === 'news') {
+    const now = new Date().toLocaleDateString('ko-KR');
+    content.innerHTML = `
+      <div class="news-header"><span>청새치웹 뉴스</span><span>${now}</span></div>
+      <div class="news-body">
+        <div class="card-title">${card.title}</div>
+        <div class="news-byline">청새치웹 기자 · 소상공인 전문</div>
+        <div class="news-rule"></div>
+        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+        <div class="card-body">${card.body}</div>
+      </div>`;
+  } else if (tpl === 'newspaper') {
+    const now = new Date().toLocaleDateString('ko-KR');
+    content.innerHTML = `
+      <div class="np-masthead">청새치웹 DAILY · 소상공인을 위한 구조 이야기</div>
+      <div class="card-title">${card.title}</div>
+      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+      <div class="card-body">${card.body}</div>
+      <div class="np-date">${now}</div>`;
+  } else if (tpl === 'memo') {
+    content.innerHTML = `
+      <div class="memo-line"></div>
+      <div class="card-title">${card.title}</div>
+      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+      <div class="card-body">${card.body}</div>`;
+  } else if (tpl === 'receipt') {
+    const lines = card.body.split('\n').filter(l => l.trim());
+    const rows = lines.map(l => `<div class="receipt-row"><span>${l}</span></div>`).join('');
+    content.innerHTML = `
+      <div class="receipt-header">
+        <div class="receipt-shop">청새치웹</div>
+        <div class="receipt-sub">시행착오는 내가, 결과는 당신이</div>
+      </div>
+      <hr class="receipt-divider">
+      <div class="card-title">${card.title}</div>
+      <hr class="receipt-divider">
+      ${card.image ? `<div class="card-image-area" style="max-height:100px">${imgEl(card)}</div>` : ''}
+      ${rows}
+      <hr class="receipt-divider">`;
+  } else if (tpl === 'terminal') {
+    content.innerHTML = `
+      <div class="term-bar">
+        <div class="term-dots"><div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div></div>
+        <div class="term-title">cschi-web ~ content</div>
+      </div>
+      <div class="term-body">
+        <div class="term-prompt">$ cat card_${idx+1}.md</div>
+        <div class="card-title">${card.title}<span class="term-cursor"></span></div>
+        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
+        <div class="card-body">${card.body}</div>
+      </div>`;
+  } else {
+    // minimal
+    content.innerHTML = `
+      <div class="card-title">${card.title}</div>
+      <div class="card-image-area">
+        ${card.image ? imgEl(card) : `<div class="card-image-placeholder" onclick="document.getElementById('cardImgFile').click()">+ 이미지 추가</div>`}
+      </div>
+      <div class="card-body">${card.body}</div>`;
+  }
+
+  el.appendChild(content);
+
+  if (state.watermark) {
+    const wm = document.createElement('img');
+    wm.src = state.watermark;
+    wm.className = 'card-watermark';
+    el.appendChild(wm);
+  }
+
+  return el;
+}
+
+function imgEl(card) {
+  const fitMap = { cover: 'cover', contain: 'contain', none: 'auto' };
+  return `<img src="${card.image}" style="object-fit:${fitMap[card.fit]||'cover'};width:100%;height:100%" alt="">`;
+}
+
+// ── Select card ──
+function selectCard(idx) {
+  state.selectedIdx = idx;
+  document.querySelectorAll('.card').forEach((c, i) => {
+    c.classList.toggle('selected', i === idx);
+  });
+  const card = state.cards[idx];
+  document.getElementById('editPanelTitle').textContent = `${idx + 1}장 편집${idx === 0 ? ' (썸네일)' : ''}`;
+  document.getElementById('editTitle').value = card.title;
+  document.getElementById('editBody').value = card.body;
+  const hasImg = !!card.image;
+  document.getElementById('imgRemoveBtn').style.display = hasImg ? 'inline-block' : 'none';
+  document.getElementById('fitControls').style.display = hasImg ? 'flex' : 'none';
+  document.querySelectorAll('.fit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit === card.fit));
+}
+
+// ── Edit ──
+function applyEdit() {
+  const idx = state.selectedIdx;
+  state.cards[idx].title = document.getElementById('editTitle').value;
+  state.cards[idx].body = document.getElementById('editBody').value;
+  const strip = document.getElementById('cardsStrip');
+  const wrapper = strip.children[idx];
+  if (wrapper) {
+    const oldCard = wrapper.querySelector('.card');
+    const newCard = buildCard(state.cards[idx], idx);
+    wrapper.replaceChild(newCard, oldCard);
+  }
+}
+
+// ── Card image ──
+function loadCardImage(input) {
+  const file = input.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const idx = state.selectedIdx;
+    state.cards[idx].image = e.target.result;
+    document.getElementById('imgRemoveBtn').style.display = 'inline-block';
+    document.getElementById('fitControls').style.display = 'flex';
+    applyEdit();
+    input.value = '';
+  };
+  reader.readAsDataURL(file);
+}
+function removeCardImage() {
+  const idx = state.selectedIdx;
+  state.cards[idx].image = null;
+  document.getElementById('imgRemoveBtn').style.display = 'none';
+  document.getElementById('fitControls').style.display = 'none';
+  applyEdit();
+}
+function setFit(el) {
+  document.querySelectorAll('.fit-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  state.cards[state.selectedIdx].fit = el.dataset.fit;
+  applyEdit();
+}
+
+// ── Download ──
+async function downloadCard(idx) {
+  const strip = document.getElementById('cardsStrip');
+  const cardEl = strip.children[idx]?.querySelector('.card');
+  if (!cardEl) return;
+  const canvas = await html2canvas(cardEl, { scale: 1080 / cardEl.offsetWidth, useCORS: true, backgroundColor: null });
+  const a = document.createElement('a');
+  a.href = canvas.toDataURL('image/png');
+  a.download = `cschi_card_${idx+1}.png`;
+  a.click();
+}
+async function downloadSelected() { await downloadCard(state.selectedIdx); }
+async function downloadAll() { for (let i = 0; i < state.cards.length; i++) { await downloadCard(i); await new Promise(r => setTimeout(r, 300)); } }
+
+// ── Caption ──
+function copyCaption() {
+  navigator.clipboard.writeText(state.caption).then(() => {
+    const btn = [...document.querySelectorAll('.action-btn')].find(b => b.textContent.includes('캡션'));
+    if (btn) { btn.textContent = '✅ 복사됨'; setTimeout(() => { btn.textContent = '📋 캡션 복사'; }, 2000); }
+  });
+}
+</script>
+</body>
+</html>
