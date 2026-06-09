@@ -527,7 +527,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
             onpaste="handlePasteZone(event)"
             onfocus="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'"
             onblur="this.style.borderColor='';this.style.color=''">
-            여기 클릭 후 Ctrl+V 로 붙여넣기
+            <span id="pasteZoneLabel"></span>
           </div>
           <span class="img-remove" id="imgRemoveBtn" style="display:none" onclick="removeCardImage()">이미지 삭제</span>
           <div class="fit-controls" id="fitControls" style="display:none">
@@ -902,6 +902,13 @@ function applyEdit() {
     isEditing = false;
   }
 }
+
+// ── Mobile detection ──
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+document.addEventListener('DOMContentLoaded', () => {
+  const label = document.getElementById('pasteZoneLabel');
+  if (label) label.textContent = isMobile ? '여기 길게 눌러서 붙여넣기' : '여기 클릭 후 Ctrl+V 로 붙여넣기';
+});
 
 // ── Clipboard paste image ──
 function handlePasteZone(e) {
