@@ -821,7 +821,7 @@ function buildCard(card, idx) {
       ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
       <div class="card-body" ${bStyle}>${esc(card.body)}</div>`;
   } else if (tpl === 'receipt') {
-    const lines = card.body.split('\n').filter(l=>l.trim());
+    const lines = card.body.split('\n');
     const rows = lines.map(l=>`<div class="receipt-row"><span>${esc(l)}</span></div>`).join('');
     content.innerHTML = `
       <div class="receipt-header">
