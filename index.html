@@ -168,14 +168,18 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   max-height: 26px; max-width: 75px; opacity: 0.75;
 }
 
-/* Thumbnail overlay (1장 한정) */
-.thumb-overlay {
-  position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.32) 100%);
-  pointer-events: none;
+/* 썸네일 색상 피커 */
+.thumb-color-panel {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px; margin-top: 10px;
+  display: flex; flex-direction: column; gap: 8px;
 }
-.card.thumb .card-title { color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
-.card.thumb .card-body { color: rgba(255,255,255,0.88); text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+.color-row { display: flex; align-items: center; justify-content: space-between; }
+.color-row label { font-size: 12px; color: var(--text-muted); }
+.color-row input[type="color"] {
+  width: 36px; height: 28px; padding: 2px; border: 1px solid var(--border);
+  border-radius: 6px; cursor: pointer; background: var(--bg);
+}
 
 /* Template settings panel */
 .tpl-settings {
@@ -496,6 +500,20 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
           <label>본문</label>
           <textarea id="editBody" rows="4" oninput="applyEdit()"></textarea>
         </div>
+        <!-- 썸네일 색상 피커 (1장 선택 시에만 표시) -->
+        <div id="thumbColorPanel" style="display:none">
+          <label>썸네일 텍스트 색상</label>
+          <div class="thumb-color-panel">
+            <div class="color-row">
+              <label>제목 색상</label>
+              <input type="color" id="thumbTitleColor" value="#1A5BB5" oninput="applyThumbColor()">
+            </div>
+            <div class="color-row">
+              <label>본문 색상</label>
+              <input type="color" id="thumbBodyColor" value="#334155" oninput="applyThumbColor()">
+            </div>
+          </div>
+        </div>
         <div>
           <label>카드 이미지</label>
           <div class="img-upload-btn" onclick="document.getElementById('cardImgFile').click()">＋ 이미지 추가</div>
@@ -528,6 +546,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 let state = {
   cards: [], caption: '', selectedIdx: 0,
   template: 'minimal', watermark: null,
+  thumbColors: { title: '#1A5BB5', body: '#334155' },
   tplConfig: {
     chrome: { url: '청새치웹.com' },
     kakao: { sender: '청새치웹', time: '오늘 오후 2:34' },
@@ -713,16 +732,11 @@ function buildCard(card, idx) {
   bg.className = 'card-bg';
   el.appendChild(bg);
 
-  // Thumbnail overlay
-  if (isThumb) {
-    const ov = document.createElement('div');
-    ov.className = 'thumb-overlay';
-    el.appendChild(ov);
-  }
-
   const content = document.createElement('div');
   content.className = 'card-content';
   const now = new Date().toLocaleDateString('ko-KR');
+  const tStyle = isThumb ? `style="color:${state.thumbColors.title}"` : '';
+  const bStyle = isThumb ? `style="color:${state.thumbColors.body}"` : '';
 
   if (tpl === 'chrome') {
     content.innerHTML = `
@@ -731,57 +745,57 @@ function buildCard(card, idx) {
         <div class="chrome-url">${cfg.url||'청새치웹.com'}/content/${idx+1}</div>
       </div>
       <div class="chrome-body">
-        <div class="card-title">${esc(card.title)}</div>
+        <div class="card-title" ${tStyle}>${esc(card.title)}</div>
         ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-        <div class="card-body">${esc(card.body)}</div>
+        <div class="card-body" ${bStyle}>${esc(card.body)}</div>
       </div>`;
   } else if (tpl === 'kakao') {
     content.innerHTML = `
       <div class="kakao-header">${esc(cfg.time||'오늘 오후 2:34')}</div>
-      <div class="bubble-left"><div class="bubble-name">${esc(cfg.sender||'청새치웹')}</div><div class="bubble">${esc(card.title)}</div></div>
+      <div class="bubble-left"><div class="bubble-name">${esc(cfg.sender||'청새치웹')}</div><div class="bubble" ${tStyle}>${esc(card.title)}</div></div>
       ${card.image?`<div class="card-image-area" style="max-height:110px">${imgEl(card)}</div>`:''}
-      <div class="bubble-right"><div class="bubble">${esc(card.body)}</div></div>`;
+      <div class="bubble-right"><div class="bubble" ${bStyle}>${esc(card.body)}</div></div>`;
   } else if (tpl === 'notion') {
     content.innerHTML = `
       <div class="notion-tag">${esc(cfg.tag||'# 청새치웹')}</div>
       <div class="notion-icon">${cfg.icon||'📌'}</div>
-      <div class="card-title">${esc(card.title)}</div>
+      <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       <div class="notion-divider"></div>
       ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-      <div class="card-body">${esc(card.body)}</div>`;
+      <div class="card-body" ${bStyle}>${esc(card.body)}</div>`;
   } else if (tpl === 'news') {
     content.innerHTML = `
       <div class="news-header"><span>${esc(cfg.brand||'청새치웹 뉴스')}</span><span>${now}</span></div>
       <div class="news-body">
-        <div class="card-title">${esc(card.title)}</div>
+        <div class="card-title" ${tStyle}>${esc(card.title)}</div>
         <div class="news-byline">${esc(cfg.byline||'청새치웹 기자 · 소상공인 전문')}</div>
         <div class="news-rule"></div>
         ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-        <div class="card-body">${esc(card.body)}</div>
+        <div class="card-body" ${bStyle}>${esc(card.body)}</div>
       </div>`;
   } else if (tpl === 'newspaper') {
     content.innerHTML = `
       <div class="np-masthead">${esc(cfg.masthead||'청새치웹 DAILY · 소상공인을 위한 구조 이야기')}</div>
-      <div class="card-title">${esc(card.title)}</div>
+      <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-      <div class="card-body">${esc(card.body)}</div>
+      <div class="card-body" ${bStyle}>${esc(card.body)}</div>
       <div class="np-date">${now}</div>`;
   } else if (tpl === 'memo') {
     content.innerHTML = `
       <div class="memo-line"></div>
-      <div class="card-title">${esc(card.title)}</div>
+      <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-      <div class="card-body">${esc(card.body)}</div>`;
+      <div class="card-body" ${bStyle}>${esc(card.body)}</div>`;
   } else if (tpl === 'receipt') {
     const lines = card.body.split('\n').filter(l=>l.trim());
     const rows = lines.map(l=>`<div class="receipt-row"><span>${esc(l)}</span></div>`).join('');
     content.innerHTML = `
       <div class="receipt-header">
         <div class="receipt-shop">${esc(cfg.shop||'청새치웹')}</div>
-        <div class="receipt-sub">${esc(cfg.sub||'홈페이지는 "구조"입니다')}</div>
+        <div class="receipt-sub">${esc(cfg.sub||'시행착오는 내가, 결과는 당신이')}</div>
       </div>
       <hr class="receipt-divider">
-      <div class="card-title">${esc(card.title)}</div>
+      <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       <hr class="receipt-divider">
       ${card.image?`<div class="card-image-area" style="max-height:90px">${imgEl(card)}</div>`:''}
       ${rows}
@@ -794,16 +808,16 @@ function buildCard(card, idx) {
       </div>
       <div class="term-body">
         <div class="term-prompt">$ cat card_${idx+1}.md</div>
-        <div class="card-title">${esc(card.title)}<span class="term-cursor"></span></div>
+        <div class="card-title" ${tStyle}>${esc(card.title)}<span class="term-cursor"></span></div>
         ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-        <div class="card-body">${esc(card.body)}</div>
+        <div class="card-body" ${bStyle}>${esc(card.body)}</div>
       </div>`;
   } else {
     // minimal — 이미지 없으면 placeholder 없음
     content.innerHTML = `
-      <div class="card-title">${esc(card.title)}</div>
+      <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
-      <div class="card-body">${esc(card.body)}</div>`;
+      <div class="card-body" ${bStyle}>${esc(card.body)}</div>`;
   }
 
   el.appendChild(content);
@@ -837,6 +851,25 @@ function selectCard(idx) {
   document.getElementById('imgRemoveBtn').style.display = hasImg?'inline-block':'none';
   document.getElementById('fitControls').style.display = hasImg?'flex':'none';
   document.querySelectorAll('.fit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit===card.fit));
+  // 썸네일 색상 패널
+  const thumbPanel = document.getElementById('thumbColorPanel');
+  thumbPanel.style.display = idx === 0 ? 'block' : 'none';
+  if (idx === 0) {
+    document.getElementById('thumbTitleColor').value = state.thumbColors.title;
+    document.getElementById('thumbBodyColor').value = state.thumbColors.body;
+  }
+}
+
+// ── Thumbnail color ──
+function applyThumbColor() {
+  state.thumbColors.title = document.getElementById('thumbTitleColor').value;
+  state.thumbColors.body = document.getElementById('thumbBodyColor').value;
+  const strip = document.getElementById('cardsStrip');
+  const wrapper = strip.children[0];
+  if (wrapper) {
+    const old = wrapper.querySelector('.card');
+    wrapper.replaceChild(buildCard(state.cards[0], 0), old);
+  }
 }
 
 // ── Edit ──
