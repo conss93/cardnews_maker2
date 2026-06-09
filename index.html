@@ -26,12 +26,13 @@
   --font-serif: 'Noto Serif KR', serif;
   --card-w: 324px;
   --card-h: 405px;
+  --sidebar-w: 360px;
 }
 
 body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; }
 
 /* LAYOUT */
-.app { display: grid; grid-template-columns: 360px 1fr; min-height: 100vh; }
+.app { display: grid; grid-template-columns: var(--sidebar-w) 1fr; min-height: 100vh; }
 
 /* SIDEBAR */
 .sidebar {
@@ -39,40 +40,46 @@ body { font-family: var(--font); background: var(--bg); color: var(--text); min-
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column;
   position: sticky; top: 0; height: 100vh;
-  overflow-y: auto;
+  overflow-y: auto; z-index: 100;
 }
 .sidebar-header {
-  padding: 20px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; gap: 10px;
 }
 .logo {
-  width: 34px; height: 34px;
-  background: var(--brand);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
+  width: 32px; height: 32px;
+  background: var(--brand); border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
-.logo svg { width: 20px; height: 20px; fill: white; }
+.logo svg { width: 18px; height: 18px; fill: white; }
 .logo-text { font-size: 14px; font-weight: 700; color: var(--text); line-height: 1.3; }
 .logo-sub { font-size: 11px; color: var(--text-muted); font-weight: 400; }
 
-.sidebar-body { padding: 20px; flex: 1; display: flex; flex-direction: column; gap: 20px; }
+/* Mobile toggle */
+.mob-toggle {
+  display: none; margin-left: auto;
+  background: none; border: none; cursor: pointer;
+  padding: 4px; color: var(--text-muted);
+}
+
+.sidebar-body { padding: 16px 20px; flex: 1; display: flex; flex-direction: column; gap: 16px; }
 
 .field-group { display: flex; flex-direction: column; gap: 6px; }
-.field-label { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
-textarea, input[type="text"] {
+.field-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+textarea, input[type="text"], select {
   width: 100%; font-family: var(--font); font-size: 14px;
   border: 1px solid var(--border); border-radius: var(--radius);
-  padding: 10px 12px; color: var(--text); background: var(--bg);
+  padding: 9px 12px; color: var(--text); background: var(--bg);
   transition: border-color 0.15s;
 }
-textarea { min-height: 80px; resize: vertical; }
-textarea:focus, input:focus { outline: none; border-color: var(--brand); background: white; }
+textarea { min-height: 76px; resize: vertical; white-space: pre-wrap; }
+textarea:focus, input:focus, select:focus { outline: none; border-color: var(--brand); background: white; }
+select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; cursor: pointer; }
 
 .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .type-btn {
-  padding: 9px 10px; border: 1px solid var(--border);
+  padding: 8px 10px; border: 1px solid var(--border);
   border-radius: var(--radius); background: var(--bg);
   cursor: pointer; text-align: left; transition: all 0.12s;
 }
@@ -82,8 +89,13 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 .type-btn .td { font-size: 10px; color: var(--text-muted); margin-top: 2px; display: block; line-height: 1.4; }
 .type-btn.active .tn { color: var(--brand); }
 
+/* Slider */
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider-row input[type="range"] { flex: 1; accent-color: var(--brand); }
+.slider-val { font-size: 13px; font-weight: 600; color: var(--brand); min-width: 28px; text-align: right; }
+
 .gen-btn {
-  width: 100%; padding: 13px;
+  width: 100%; padding: 12px;
   background: var(--brand); color: white;
   border: none; border-radius: var(--radius);
   font-family: var(--font); font-size: 14px; font-weight: 500;
@@ -93,94 +105,99 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 .gen-btn:hover { background: var(--brand-dark); }
 .gen-btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
-.divider { height: 1px; background: var(--border); }
+.divider { height: 1px; background: var(--border); flex-shrink: 0; }
 
 /* Template selector */
-.template-scroll { display: flex; flex-direction: column; gap: 6px; max-height: 240px; overflow-y: auto; }
+.template-scroll { display: flex; flex-direction: column; gap: 5px; max-height: 200px; overflow-y: auto; }
 .tpl-btn {
-  padding: 9px 12px; border: 1px solid var(--border);
+  padding: 8px 12px; border: 1px solid var(--border);
   border-radius: var(--radius); background: var(--bg);
   cursor: pointer; text-align: left; font-size: 13px;
   color: var(--text); transition: all 0.12s; display: flex; align-items: center; gap: 8px;
 }
 .tpl-btn:hover { border-color: var(--brand); background: var(--brand-light); }
 .tpl-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); font-weight: 500; }
-.tpl-icon { font-size: 16px; width: 20px; text-align: center; }
+.tpl-icon { font-size: 15px; width: 20px; text-align: center; }
 
 /* Watermark */
 .wm-upload {
   border: 1.5px dashed var(--border); border-radius: var(--radius);
-  padding: 14px; text-align: center; cursor: pointer;
+  padding: 12px; text-align: center; cursor: pointer;
   color: var(--text-muted); font-size: 13px; transition: all 0.15s;
 }
 .wm-upload:hover { border-color: var(--brand); color: var(--brand); }
 .wm-preview { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
-.wm-preview img { height: 36px; border-radius: 4px; border: 1px solid var(--border); }
+.wm-preview img { height: 32px; border-radius: 4px; border: 1px solid var(--border); }
 .wm-clear { font-size: 12px; color: var(--text-muted); cursor: pointer; margin-left: auto; }
 .wm-clear:hover { color: #e53e3e; }
 
 /* MAIN */
-.main { padding: 32px; }
-.main-header { margin-bottom: 24px; }
-.main-header h1 { font-size: 16px; font-weight: 500; color: var(--text-muted); }
+.main { padding: 28px; overflow-x: hidden; }
+.main-header { margin-bottom: 20px; }
+.main-header h1 { font-size: 15px; font-weight: 500; color: var(--text-muted); }
 
 /* Card strip */
-.cards-strip { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 16px; }
-.card-wrapper { flex-shrink: 0; display: flex; flex-direction: column; gap: 10px; }
+.cards-strip { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 14px; }
+.card-wrapper { flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
 .card-num { font-size: 11px; color: var(--text-muted); font-weight: 500; text-align: center; }
 
-/* The actual card */
+/* Card */
 .card {
   width: var(--card-w); height: var(--card-h);
   position: relative; overflow: hidden;
   border-radius: 12px; cursor: pointer;
   border: 2px solid transparent;
-  transition: border-color 0.15s;
-  flex-shrink: 0;
+  transition: border-color 0.15s; flex-shrink: 0;
 }
 .card.selected { border-color: var(--brand); }
 .card-bg { position: absolute; inset: 0; }
 .card-content {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  padding: 24px 20px;
+  padding: 22px 18px;
 }
-.card-title {
-  font-size: 18px; font-weight: 700; line-height: 1.35;
-  margin-bottom: 12px;
-}
+.card-title { font-size: 17px; font-weight: 700; line-height: 1.35; margin-bottom: 10px; white-space: pre-wrap; }
 .card-image-area {
   flex: 1; display: flex; align-items: center; justify-content: center;
-  margin: 8px 0; position: relative; overflow: hidden;
+  margin: 6px 0; position: relative; overflow: hidden;
 }
-.card-image-area img {
-  width: 100%; height: 100%;
-}
-.card-image-placeholder {
-  width: 100%; height: 100%;
-  border: 1.5px dashed rgba(0,0,0,0.15);
-  border-radius: 8px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 12px; color: rgba(0,0,0,0.3);
-  cursor: pointer;
-}
-.card-body { font-size: 13px; line-height: 1.65; }
+.card-image-area img { width: 100%; height: 100%; }
+.card-body { font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
 .card-watermark {
-  position: absolute; right: 12px; bottom: 12px;
-  max-height: 28px; max-width: 80px; opacity: 0.75;
+  position: absolute; right: 10px; bottom: 10px;
+  max-height: 26px; max-width: 75px; opacity: 0.75;
 }
+
+/* Thumbnail overlay (1장 한정) */
+.thumb-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(160deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.32) 100%);
+  pointer-events: none;
+}
+.card.thumb .card-title { color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+.card.thumb .card-body { color: rgba(255,255,255,0.88); text-shadow: 0 1px 4px rgba(0,0,0,0.3); }
+
+/* Template settings panel */
+.tpl-settings {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius-lg); padding: 16px; margin-top: 20px;
+}
+.tpl-settings h2 { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
+.tpl-settings-fields { display: flex; flex-direction: column; gap: 8px; }
+.tpl-settings-fields label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+.tpl-settings-fields input[type="text"] { font-size: 13px; padding: 7px 10px; }
 
 /* Edit panel */
 .edit-panel {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 20px; margin-top: 24px;
+  border-radius: var(--radius-lg); padding: 18px; margin-top: 14px;
 }
-.edit-panel h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 14px; }
+.edit-panel h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 12px; }
 .edit-fields { display: flex; flex-direction: column; gap: 10px; }
 .edit-fields label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; }
-.edit-fields textarea { font-size: 13px; min-height: 60px; }
+.edit-fields textarea { font-size: 13px; min-height: 56px; white-space: pre-wrap; }
 
-/* Image fit controls */
+/* Fit controls */
 .fit-controls { display: flex; gap: 6px; margin-top: 6px; }
 .fit-btn {
   padding: 5px 10px; border: 1px solid var(--border);
@@ -189,7 +206,6 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 }
 .fit-btn.active { border-color: var(--brand); background: var(--brand-light); color: var(--brand); }
 
-/* Image upload for card */
 .img-upload-btn {
   padding: 7px 12px; border: 1px dashed var(--border);
   border-radius: var(--radius); font-size: 12px; cursor: pointer;
@@ -199,10 +215,10 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 .img-upload-btn:hover { border-color: var(--brand); color: var(--brand); }
 .img-remove { font-size: 12px; color: #e53e3e; cursor: pointer; margin-top: 4px; display: inline-block; }
 
-/* Download & Caption */
-.actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+/* Actions */
+.actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
 .action-btn {
-  padding: 9px 16px; border: 1px solid var(--border);
+  padding: 8px 14px; border: 1px solid var(--border);
   border-radius: var(--radius); font-size: 13px; cursor: pointer;
   background: var(--surface); color: var(--text); transition: all 0.12s;
   display: flex; align-items: center; gap: 6px; font-family: var(--font);
@@ -211,171 +227,143 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 .action-btn.primary { background: var(--brand); color: white; border-color: var(--brand); }
 .action-btn.primary:hover { background: var(--brand-dark); }
 
+/* Caption */
 .caption-box {
   background: var(--surface); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 20px; margin-top: 24px;
+  border-radius: var(--radius-lg); padding: 18px; margin-top: 20px;
 }
-.caption-box h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 12px; }
+.caption-box h2 { font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 10px; }
 .caption-text {
-  font-size: 14px; line-height: 1.75; color: var(--text);
+  font-size: 14px; line-height: 1.8; color: var(--text);
   white-space: pre-wrap; background: var(--bg);
-  border-radius: var(--radius); padding: 14px;
-  min-height: 80px;
+  border-radius: var(--radius); padding: 14px; min-height: 80px;
 }
-
-/* Spinner */
-.spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Empty state */
 .empty-state {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  min-height: 400px; color: var(--text-faint); gap: 12px;
+  min-height: 360px; color: var(--text-faint); gap: 12px;
 }
-.empty-state svg { opacity: 0.25; }
 .empty-state p { font-size: 14px; }
 
-/* ============ TEMPLATES ============ */
+/* Spinner */
+.spinner { width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-/* 1. MINIMAL (default) */
+/* ── TEMPLATES ── */
+
+/* MINIMAL */
 .tpl-minimal .card-bg { background: #f0f4ff; }
 .tpl-minimal .card-title { color: #1A5BB5; }
 .tpl-minimal .card-body { color: #334155; }
-.tpl-minimal .card-image-placeholder { border-color: rgba(26,91,181,0.2); color: rgba(26,91,181,0.4); }
 
-/* 2. CHROME BROWSER */
+/* CHROME */
 .tpl-chrome .card-bg { background: #f1f3f4; }
 .tpl-chrome .card-content { padding: 0; }
-.tpl-chrome .chrome-bar {
-  background: #dee1e6; padding: 8px 10px;
-  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
-}
+.tpl-chrome .chrome-bar { background: #dee1e6; padding: 7px 10px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .tpl-chrome .chrome-dots { display: flex; gap: 4px; }
 .tpl-chrome .chrome-dot { width: 8px; height: 8px; border-radius: 50%; }
 .tpl-chrome .chrome-dot:nth-child(1) { background: #ff5f57; }
 .tpl-chrome .chrome-dot:nth-child(2) { background: #ffbd2e; }
 .tpl-chrome .chrome-dot:nth-child(3) { background: #28c840; }
-.tpl-chrome .chrome-url {
-  flex: 1; background: white; border-radius: 99px;
-  padding: 4px 12px; font-size: 10px; color: #5f6368;
-  font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.tpl-chrome .chrome-body {
-  flex: 1; background: white; padding: 18px 16px;
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.tpl-chrome .card-title { color: #1a73e8; font-size: 16px; text-decoration: underline; }
+.tpl-chrome .chrome-url { flex: 1; background: white; border-radius: 99px; padding: 3px 10px; font-size: 10px; color: #5f6368; font-family: var(--font-mono); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tpl-chrome .chrome-body { flex: 1; background: white; padding: 16px 14px; display: flex; flex-direction: column; overflow: hidden; }
+.tpl-chrome .card-title { color: #1a73e8; font-size: 15px; text-decoration: underline; }
 .tpl-chrome .card-body { color: #202124; }
 
-/* 3. KAKAO */
+/* KAKAO */
 .tpl-kakao .card-bg { background: #b2c7d9; }
-.tpl-kakao .card-content { padding: 16px 14px; gap: 8px; }
-.tpl-kakao .kakao-header {
-  font-size: 11px; color: #4a4a4a; text-align: center; margin-bottom: 4px;
-}
+.tpl-kakao .card-content { padding: 14px 12px; gap: 7px; }
+.tpl-kakao .kakao-header { font-size: 10px; color: #4a4a4a; text-align: center; margin-bottom: 4px; }
 .tpl-kakao .bubble-left, .tpl-kakao .bubble-right { display: flex; flex-direction: column; }
 .tpl-kakao .bubble-left { align-items: flex-start; }
 .tpl-kakao .bubble-right { align-items: flex-end; }
-.tpl-kakao .bubble {
-  padding: 10px 12px; border-radius: 12px; max-width: 85%;
-  font-size: 12px; line-height: 1.6;
-}
+.tpl-kakao .bubble { padding: 9px 11px; border-radius: 12px; max-width: 85%; font-size: 12px; line-height: 1.6; white-space: pre-wrap; }
 .tpl-kakao .bubble-left .bubble { background: white; color: #1a1a1a; border-top-left-radius: 2px; }
 .tpl-kakao .bubble-right .bubble { background: #fee500; color: #1a1a1a; border-top-right-radius: 2px; }
 .tpl-kakao .bubble-name { font-size: 10px; color: #4a4a4a; margin-bottom: 3px; }
 
-/* 4. NOTION */
+/* NOTION */
 .tpl-notion .card-bg { background: #ffffff; }
-.tpl-notion .card-content { padding: 28px 22px; }
-.tpl-notion .notion-icon { font-size: 28px; margin-bottom: 8px; }
-.tpl-notion .card-title { font-size: 17px; color: #37352f; font-weight: 700; }
-.tpl-notion .notion-divider { height: 1px; background: #e9e9e7; margin: 10px 0; flex-shrink: 0; }
+.tpl-notion .card-content { padding: 24px 20px; }
+.tpl-notion .notion-icon { font-size: 26px; margin-bottom: 6px; }
+.tpl-notion .card-title { font-size: 16px; color: #37352f; font-weight: 700; }
+.tpl-notion .notion-divider { height: 1px; background: #e9e9e7; margin: 8px 0; flex-shrink: 0; }
 .tpl-notion .card-body { color: #37352f; font-size: 13px; }
-.tpl-notion .notion-tag {
-  display: inline-block; padding: 2px 8px; border-radius: 4px;
-  background: #e8f0fe; color: #1A5BB5; font-size: 11px; margin-bottom: 8px;
-}
+.tpl-notion .notion-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; background: #e8f0fe; color: #1A5BB5; font-size: 11px; margin-bottom: 6px; }
 
-/* 5. NEWS */
+/* NEWS */
 .tpl-news .card-bg { background: #fafafa; }
 .tpl-news .card-content { padding: 0; }
-.tpl-news .news-header {
-  background: #1A5BB5; color: white; padding: 8px 16px;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.1em;
-  text-transform: uppercase; flex-shrink: 0;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.tpl-news .news-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; overflow: hidden; }
-.tpl-news .card-title { font-family: var(--font-serif); font-size: 17px; color: #111; line-height: 1.3; }
-.tpl-news .news-byline { font-size: 10px; color: #888; margin: 6px 0 10px; font-style: italic; }
-.tpl-news .news-rule { height: 2px; background: #1A5BB5; margin-bottom: 10px; flex-shrink: 0; }
-.tpl-news .card-body { font-size: 12px; color: #333; column-count: 1; }
+.tpl-news .news-header { background: #1A5BB5; color: white; padding: 7px 14px; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; flex-shrink: 0; display: flex; justify-content: space-between; align-items: center; }
+.tpl-news .news-body { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; overflow: hidden; }
+.tpl-news .card-title { font-family: var(--font-serif); font-size: 16px; color: #111; line-height: 1.3; }
+.tpl-news .news-byline { font-size: 10px; color: #888; margin: 5px 0 8px; font-style: italic; }
+.tpl-news .news-rule { height: 2px; background: #1A5BB5; margin-bottom: 8px; flex-shrink: 0; }
+.tpl-news .card-body { font-size: 12px; color: #333; }
 
-/* 6. NEWSPAPER */
+/* NEWSPAPER */
 .tpl-newspaper .card-bg { background: #f5f0e8; }
-.tpl-newspaper .card-content { padding: 16px; }
-.tpl-newspaper .np-masthead {
-  text-align: center; border-top: 3px solid #1a1a1a; border-bottom: 1px solid #1a1a1a;
-  padding: 4px 0; margin-bottom: 10px; flex-shrink: 0;
-  font-family: var(--font-serif); font-size: 10px; color: #555; letter-spacing: 0.15em;
-}
-.tpl-newspaper .card-title {
-  font-family: var(--font-serif); font-size: 20px; font-weight: 700;
-  color: #111; line-height: 1.2; border-bottom: 1px solid #999; padding-bottom: 8px;
-}
+.tpl-newspaper .card-content { padding: 14px; }
+.tpl-newspaper .np-masthead { text-align: center; border-top: 3px solid #1a1a1a; border-bottom: 1px solid #1a1a1a; padding: 3px 0; margin-bottom: 8px; flex-shrink: 0; font-family: var(--font-serif); font-size: 10px; color: #555; letter-spacing: 0.15em; }
+.tpl-newspaper .card-title { font-family: var(--font-serif); font-size: 18px; font-weight: 700; color: #111; line-height: 1.2; border-bottom: 1px solid #999; padding-bottom: 7px; }
 .tpl-newspaper .card-body { font-family: var(--font-serif); font-size: 12px; color: #222; line-height: 1.7; }
-.tpl-newspaper .np-date { font-size: 10px; color: #777; margin-top: auto; padding-top: 8px; border-top: 1px solid #ccc; }
+.tpl-newspaper .np-date { font-size: 10px; color: #777; margin-top: auto; padding-top: 7px; border-top: 1px solid #ccc; }
 
-/* 7. MEMO */
-.tpl-memo .card-bg {
-  background: #fffde7;
-  background-image: repeating-linear-gradient(transparent, transparent 27px, #c8d8e8 27px, #c8d8e8 28px);
-}
-.tpl-memo .card-content { padding: 20px 20px 20px 48px; }
-.tpl-memo .memo-line {
-  position: absolute; left: 40px; top: 0; bottom: 0; width: 1px; background: #f8bbd0; opacity: 0.8;
-}
-.tpl-memo .card-title { font-size: 17px; font-weight: 700; color: #1a237e; line-height: 1.4; }
+/* MEMO */
+.tpl-memo .card-bg { background: #fffde7; background-image: repeating-linear-gradient(transparent, transparent 27px, #c8d8e8 27px, #c8d8e8 28px); }
+.tpl-memo .card-content { padding: 18px 18px 18px 46px; }
+.tpl-memo .memo-line { position: absolute; left: 38px; top: 0; bottom: 0; width: 1px; background: #f8bbd0; opacity: 0.8; }
+.tpl-memo .card-title { font-size: 16px; font-weight: 700; color: #1a237e; line-height: 1.4; }
 .tpl-memo .card-body { font-size: 13px; color: #1a1a2e; line-height: 1.9; }
 
-/* 8. RECEIPT */
+/* RECEIPT */
 .tpl-receipt .card-bg { background: #fff9f0; }
-.tpl-receipt .card-content { padding: 20px 18px; font-family: var(--font-mono); }
-.tpl-receipt .receipt-header { text-align: center; margin-bottom: 12px; flex-shrink: 0; }
-.tpl-receipt .receipt-shop { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+.tpl-receipt .card-content { padding: 18px 16px; font-family: var(--font-mono); }
+.tpl-receipt .receipt-header { text-align: center; margin-bottom: 10px; flex-shrink: 0; }
+.tpl-receipt .receipt-shop { font-size: 14px; font-weight: 700; color: #1a1a1a; }
 .tpl-receipt .receipt-sub { font-size: 10px; color: #888; margin-top: 2px; }
-.tpl-receipt .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 8px 0; flex-shrink: 0; }
-.tpl-receipt .receipt-row { display: flex; justify-content: space-between; font-size: 11px; color: #333; margin: 4px 0; }
-.tpl-receipt .receipt-total { font-size: 13px; font-weight: 700; color: #1a1a1a; }
-.tpl-receipt .card-title { font-size: 14px; font-weight: 700; color: #1a1a1a; }
-.tpl-receipt .card-body { font-size: 11px; color: #444; line-height: 1.8; }
+.tpl-receipt .receipt-divider { border: none; border-top: 1px dashed #ccc; margin: 7px 0; flex-shrink: 0; }
+.tpl-receipt .receipt-row { display: flex; justify-content: space-between; font-size: 11px; color: #333; margin: 3px 0; }
+.tpl-receipt .card-title { font-size: 13px; font-weight: 700; color: #1a1a1a; }
+.tpl-receipt .card-body { font-size: 11px; color: #444; line-height: 1.8; white-space: pre-wrap; }
 
-/* 9. TERMINAL */
+/* TERMINAL */
 .tpl-terminal .card-bg { background: #0d1117; }
 .tpl-terminal .card-content { padding: 0; }
-.tpl-terminal .term-bar {
-  background: #21262d; padding: 8px 12px; display: flex;
-  align-items: center; gap: 6px; flex-shrink: 0;
-}
+.tpl-terminal .term-bar { background: #21262d; padding: 7px 12px; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .tpl-terminal .term-dots { display: flex; gap: 4px; }
 .tpl-terminal .term-dot { width: 8px; height: 8px; border-radius: 50%; }
 .tpl-terminal .term-dot:nth-child(1) { background: #ff5f57; }
 .tpl-terminal .term-dot:nth-child(2) { background: #ffbd2e; }
 .tpl-terminal .term-dot:nth-child(3) { background: #28c840; }
 .tpl-terminal .term-title { font-size: 11px; color: #8b949e; font-family: var(--font-mono); margin: 0 auto; }
-.tpl-terminal .term-body { flex: 1; padding: 14px 16px; display: flex; flex-direction: column; overflow: hidden; }
-.tpl-terminal .term-prompt { font-family: var(--font-mono); font-size: 11px; color: #58a6ff; margin-bottom: 6px; flex-shrink: 0; }
-.tpl-terminal .card-title { font-family: var(--font-mono); font-size: 14px; color: #39d353; font-weight: 500; line-height: 1.4; }
-.tpl-terminal .card-body { font-family: var(--font-mono); font-size: 11px; color: #c9d1d9; line-height: 1.7; margin-top: 8px; }
-.tpl-terminal .term-cursor { display: inline-block; width: 8px; height: 14px; background: #39d353; margin-left: 2px; animation: blink 1s infinite; vertical-align: middle; }
+.tpl-terminal .term-body { flex: 1; padding: 12px 14px; display: flex; flex-direction: column; overflow: hidden; }
+.tpl-terminal .term-prompt { font-family: var(--font-mono); font-size: 11px; color: #58a6ff; margin-bottom: 5px; flex-shrink: 0; }
+.tpl-terminal .card-title { font-family: var(--font-mono); font-size: 13px; color: #39d353; font-weight: 500; line-height: 1.4; white-space: pre-wrap; }
+.tpl-terminal .card-body { font-family: var(--font-mono); font-size: 11px; color: #c9d1d9; line-height: 1.7; margin-top: 7px; white-space: pre-wrap; }
+.tpl-terminal .term-cursor { display: inline-block; width: 7px; height: 13px; background: #39d353; margin-left: 2px; animation: blink 1s infinite; vertical-align: middle; }
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── MOBILE ── */
+@media (max-width: 768px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar {
+    position: fixed; top: 0; left: 0; width: 100%; height: auto;
+    max-height: 100vh; z-index: 200; box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+  }
+  .sidebar.mob-collapsed .sidebar-body { display: none; }
+  .mob-toggle { display: flex; }
+  .main { padding: 16px; margin-top: 60px; }
+  :root { --card-w: 280px; --card-h: 350px; }
+}
 </style>
 </head>
 <body>
 
 <div class="app">
   <!-- SIDEBAR -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo">
         <svg viewBox="0 0 24 24"><path d="M3 12 C6 6 12 4 20 8 L22 7 L20 10 C22 12 20 16 14 17 L10 22 L10 17 C7 17 4 15 3 12Z"/></svg>
@@ -384,13 +372,16 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
         <div class="logo-text">청새치웹</div>
         <div class="logo-sub">콘텐츠 생성기</div>
       </div>
+      <button class="mob-toggle" onclick="toggleSidebar()" aria-label="메뉴 접기">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
     </div>
 
     <div class="sidebar-body">
       <!-- Topic -->
       <div class="field-group">
         <span class="field-label">콘텐츠 주제</span>
-        <textarea id="topic" placeholder="예: 인스타만 있는데 홈페이지가 필요한가요?&#10;예: 아임웹 vs Sixshop 비교&#10;예: 홈페이지 만들기 전 준비사항"></textarea>
+        <textarea id="topic" placeholder="예: 인스타만 있는데 홈페이지가 필요한가요?&#10;예: 아임웹 vs Sixshop 비교"></textarea>
       </div>
 
       <!-- Type -->
@@ -398,22 +389,39 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
         <span class="field-label">콘텐츠 유형</span>
         <div class="type-grid">
           <button class="type-btn active" data-type="awareness" onclick="selectType(this)">
-            <span class="tn">인식 확장형</span>
-            <span class="td">공감→반전→정보→CTA</span>
+            <span class="tn">인식 확장형</span><span class="td">공감→반전→정보→CTA</span>
           </button>
           <button class="type-btn" data-type="info" onclick="selectType(this)">
-            <span class="tn">정보 제공형</span>
-            <span class="td">비교/정리→결론→CTA</span>
+            <span class="tn">정보 제공형</span><span class="td">비교/정리→결론→CTA</span>
           </button>
           <button class="type-btn" data-type="quiz" onclick="selectType(this)">
-            <span class="tn">자가진단형</span>
-            <span class="td">훅→체크리스트→CTA</span>
+            <span class="tn">자가진단형</span><span class="td">훅→체크리스트→CTA</span>
           </button>
           <button class="type-btn" data-type="case" onclick="selectType(this)">
-            <span class="tn">사례/Before-After</span>
-            <span class="td">문제→변화→결과→CTA</span>
+            <span class="tn">사례/Before-After</span><span class="td">문제→변화→결과→CTA</span>
           </button>
         </div>
+      </div>
+
+      <!-- 장 수 -->
+      <div class="field-group">
+        <span class="field-label">장 수 (썸네일 포함)</span>
+        <div class="slider-row">
+          <input type="range" id="cardCount" min="2" max="10" value="8" oninput="document.getElementById('cardCountVal').textContent=this.value+'장'">
+          <span class="slider-val" id="cardCountVal">8장</span>
+        </div>
+      </div>
+
+      <!-- 톤앤매너 -->
+      <div class="field-group">
+        <span class="field-label">톤앤매너</span>
+        <select id="tone">
+          <option value="friendly">친근하고 공감하는</option>
+          <option value="professional">전문적이고 신뢰감 있는</option>
+          <option value="humorous">유머러스하고 가벼운</option>
+          <option value="emotional">감성적이고 따뜻한</option>
+          <option value="direct">직설적이고 핵심만</option>
+        </select>
       </div>
 
       <!-- Generate -->
@@ -444,9 +452,7 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
       <!-- Watermark -->
       <div class="field-group">
         <span class="field-label">워터마크</span>
-        <div class="wm-upload" onclick="document.getElementById('wmFile').click()">
-          워터마크 이미지 업로드 (PNG 권장)
-        </div>
+        <div class="wm-upload" onclick="document.getElementById('wmFile').click()">워터마크 이미지 업로드 (PNG 권장)</div>
         <input type="file" id="wmFile" accept="image/*" style="display:none" onchange="loadWatermark(this)">
         <div class="wm-preview" id="wmPreview" style="display:none">
           <img id="wmImg" src="" alt="워터마크">
@@ -462,17 +468,21 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
       <h1 id="mainTitle">주제를 입력하고 콘텐츠를 생성해주세요</h1>
     </div>
 
-    <!-- Empty state -->
     <div class="empty-state" id="emptyState">
-      <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+      <svg width="56" height="56" viewBox="0 0 64 64" fill="none">
         <rect x="8" y="8" width="48" height="48" rx="8" stroke="#9ca3af" stroke-width="2"/>
         <path d="M20 32h24M20 22h24M20 42h16" stroke="#9ca3af" stroke-width="2" stroke-linecap="round"/>
       </svg>
       <p>생성된 카드뉴스가 여기에 표시됩니다</p>
     </div>
 
-    <!-- Cards -->
     <div class="cards-strip" id="cardsStrip" style="display:none"></div>
+
+    <!-- Template settings panel -->
+    <div class="tpl-settings" id="tplSettings" style="display:none">
+      <h2 id="tplSettingsTitle">템플릿 문구 설정</h2>
+      <div class="tpl-settings-fields" id="tplSettingsFields"></div>
+    </div>
 
     <!-- Edit panel -->
     <div class="edit-panel" id="editPanel" style="display:none">
@@ -500,14 +510,12 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
       </div>
     </div>
 
-    <!-- Actions -->
     <div class="actions" id="actionsRow" style="display:none">
-      <button class="action-btn primary" onclick="downloadSelected()">📥 PNG 저장 (선택 장)</button>
+      <button class="action-btn primary" onclick="downloadSelected()">📥 PNG 저장 (이 장)</button>
       <button class="action-btn" onclick="downloadAll()">📦 전체 저장</button>
       <button class="action-btn" onclick="copyCaption()">📋 캡션 복사</button>
     </div>
 
-    <!-- Caption -->
     <div class="caption-box" id="captionBox" style="display:none">
       <h2>인스타그램 캡션</h2>
       <div class="caption-text" id="captionText"></div>
@@ -516,17 +524,27 @@ textarea:focus, input:focus { outline: none; border-color: var(--brand); backgro
 </div>
 
 <script>
-const TEMPLATES = ['minimal','chrome','kakao','notion','news','newspaper','memo','receipt','terminal'];
-
+// ── State ──
 let state = {
-  cards: [],
-  caption: '',
-  selectedIdx: 0,
-  template: 'minimal',
-  watermark: null,
+  cards: [], caption: '', selectedIdx: 0,
+  template: 'minimal', watermark: null,
+  tplConfig: {
+    chrome: { url: '청새치웹.com' },
+    kakao: { sender: '청새치웹', time: '오늘 오후 2:34' },
+    notion: { tag: '# 청새치웹', icon: '📌' },
+    news: { brand: '청새치웹 뉴스', byline: '청새치웹 기자 · 소상공인 전문' },
+    newspaper: { masthead: '청새치웹 DAILY · 소상공인을 위한 구조 이야기' },
+    receipt: { shop: '청새치웹', sub: '시행착오는 내가, 결과는 당신이' },
+    terminal: { title: 'cschi-web ~ content' },
+  }
 };
 
-// ── Type selection ──
+// ── Mobile sidebar ──
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('mob-collapsed');
+}
+
+// ── Type ──
 let selectedType = 'awareness';
 function selectType(el) {
   document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
@@ -534,12 +552,44 @@ function selectType(el) {
   selectedType = el.dataset.type;
 }
 
-// ── Template selection ──
+// ── Template ──
 function selectTemplate(el) {
   document.querySelectorAll('.tpl-btn').forEach(b => b.classList.remove('active'));
   el.classList.add('active');
   state.template = el.dataset.tpl;
   renderCards();
+  renderTplSettings();
+}
+
+// ── Template settings panel ──
+const tplSettingsDef = {
+  chrome: [{ key: 'url', label: '주소창 URL' }],
+  kakao: [{ key: 'sender', label: '발신자 이름' }, { key: 'time', label: '시간 표시' }],
+  notion: [{ key: 'tag', label: '태그 문구' }, { key: 'icon', label: '아이콘 이모지' }],
+  news: [{ key: 'brand', label: '매체명' }, { key: 'byline', label: '바이라인' }],
+  newspaper: [{ key: 'masthead', label: '마스트헤드' }],
+  receipt: [{ key: 'shop', label: '상호명' }, { key: 'sub', label: '부제' }],
+  terminal: [{ key: 'title', label: '터미널 제목' }],
+};
+
+function renderTplSettings() {
+  const panel = document.getElementById('tplSettings');
+  const fields = document.getElementById('tplSettingsFields');
+  const defs = tplSettingsDef[state.template];
+  if (!defs) { panel.style.display = 'none'; return; }
+  panel.style.display = 'block';
+  document.getElementById('tplSettingsTitle').textContent = `${document.querySelector('.tpl-btn.active').textContent.trim()} 문구 설정`;
+  fields.innerHTML = '';
+  defs.forEach(({ key, label }) => {
+    const cfg = state.tplConfig[state.template] || {};
+    const wrap = document.createElement('div');
+    wrap.innerHTML = `<label>${label}</label><input type="text" value="${cfg[key] || ''}" placeholder="${label}">`;
+    wrap.querySelector('input').addEventListener('input', e => {
+      state.tplConfig[state.template][key] = e.target.value;
+      renderCards();
+    });
+    fields.appendChild(wrap);
+  });
 }
 
 // ── Watermark ──
@@ -562,9 +612,26 @@ function clearWatermark() {
 }
 
 // ── Generate ──
+const typeNames = { awareness:'인식 확장형', info:'정보 제공형', quiz:'자가진단형', case:'사례/Before-After형' };
+const toneDesc = {
+  friendly: '친근하고 공감하는 톤. 독자의 마음을 먼저 이해하고, 편한 말투로 정보를 전달한다.',
+  professional: '전문적이고 신뢰감 있는 톤. 데이터와 근거를 바탕으로 명확하게 설명한다.',
+  humorous: '유머러스하고 가벼운 톤. 위트 있는 표현으로 독자가 부담 없이 읽게 한다.',
+  emotional: '감성적이고 따뜻한 톤. 이야기처럼 흘러가며 독자의 감정을 자극한다.',
+  direct: '직설적이고 핵심만 전달하는 톤. 군더더기 없이 핵심 정보만 압축한다.',
+};
+const typeStructures = {
+  awareness: '공감(1장) → 반전/긴장(1장) → 정보①②(2장) → 구체적 대상(1장) → 신뢰/경험(1장) → 저장 유도 요약(1장) → CTA(1장).',
+  info: '문제제기(1장) → 비교/정리(항목별) → 결론 및 추천(1장) → 저장 유도(1장) → CTA(1장).',
+  quiz: '훅/공감(1장) → 체크리스트 항목(각 2~3개) → 결과 해석(1장) → 저장 유도(1장) → CTA(1장).',
+  case: '문제 상황 소개(1장) → Before 묘사(1장) → 변화 과정(1~2장) → After/결과(1장) → 배울 점 요약(1장) → CTA(1장).',
+};
+
 async function generate() {
   const topic = document.getElementById('topic').value.trim();
   if (!topic) { alert('주제를 입력해주세요.'); return; }
+  const cardCount = parseInt(document.getElementById('cardCount').value);
+  const tone = document.getElementById('tone').value;
 
   const btn = document.getElementById('genBtn');
   const label = document.getElementById('genLabel');
@@ -575,7 +642,7 @@ async function generate() {
     const res = await fetch('/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ topic, contentType: selectedType }),
+      body: JSON.stringify({ topic, contentType: selectedType, cardCount, tone }),
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'API 오류');
@@ -597,13 +664,10 @@ function parseResult(text, topic) {
   const cards = cardBlocks.map(block => {
     const titleMatch = block.match(/제목[:：]\s*(.+)/);
     const bodyMatch = block.match(/본문[:：]\s*([\s\S]+)/);
-    const numMatch = block.match(/\[(\d+)장[^\]]*\]/);
     return {
-      num: numMatch ? parseInt(numMatch[1]) : 0,
       title: titleMatch ? titleMatch[1].trim() : '',
       body: bodyMatch ? bodyMatch[1].trim() : block.trim(),
-      image: null,
-      fit: 'cover',
+      image: null, fit: 'cover',
     };
   }).filter(c => c.title || c.body);
 
@@ -620,121 +684,126 @@ function parseResult(text, topic) {
   document.getElementById('captionText').textContent = captionRaw;
 
   renderCards();
+  renderTplSettings();
   selectCard(0);
 }
 
-// ── Render all cards ──
+// ── Render cards ──
 function renderCards() {
   const strip = document.getElementById('cardsStrip');
   strip.innerHTML = '';
   state.cards.forEach((card, i) => {
     const wrapper = document.createElement('div');
     wrapper.className = 'card-wrapper';
-    wrapper.innerHTML = `<div class="card-num">${i + 1}장${i === 0 ? ' (썸네일)' : ''}</div>`;
-    const cardEl = buildCard(card, i);
-    wrapper.appendChild(cardEl);
+    wrapper.innerHTML = `<div class="card-num">${i+1}장${i===0?' (썸네일)':''}</div>`;
+    wrapper.appendChild(buildCard(card, i));
     strip.appendChild(wrapper);
   });
 }
 
 function buildCard(card, idx) {
   const tpl = state.template;
+  const cfg = state.tplConfig[tpl] || {};
+  const isThumb = idx === 0;
   const el = document.createElement('div');
-  el.className = `card tpl-${tpl}${idx === state.selectedIdx ? ' selected' : ''}`;
+  el.className = `card tpl-${tpl}${idx===state.selectedIdx?' selected':''}${isThumb?' thumb':''}`;
   el.onclick = () => selectCard(idx);
-  el.dataset.idx = idx;
 
   const bg = document.createElement('div');
   bg.className = 'card-bg';
   el.appendChild(bg);
 
+  // Thumbnail overlay
+  if (isThumb) {
+    const ov = document.createElement('div');
+    ov.className = 'thumb-overlay';
+    el.appendChild(ov);
+  }
+
   const content = document.createElement('div');
   content.className = 'card-content';
+  const now = new Date().toLocaleDateString('ko-KR');
 
   if (tpl === 'chrome') {
     content.innerHTML = `
       <div class="chrome-bar">
         <div class="chrome-dots"><div class="chrome-dot"></div><div class="chrome-dot"></div><div class="chrome-dot"></div></div>
-        <div class="chrome-url">청새치웹.com/content/${idx+1}</div>
+        <div class="chrome-url">${cfg.url||'청새치웹.com'}/content/${idx+1}</div>
       </div>
       <div class="chrome-body">
-        <div class="card-title">${card.title}</div>
-        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-        <div class="card-body">${card.body}</div>
+        <div class="card-title">${esc(card.title)}</div>
+        ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+        <div class="card-body">${esc(card.body)}</div>
       </div>`;
   } else if (tpl === 'kakao') {
     content.innerHTML = `
-      <div class="kakao-header">오늘 오후 2:34</div>
-      <div class="bubble-left"><div class="bubble-name">청새치웹</div><div class="bubble">${card.title}</div></div>
-      ${card.image ? `<div class="card-image-area" style="max-height:120px">${imgEl(card)}</div>` : ''}
-      <div class="bubble-right"><div class="bubble">${card.body}</div></div>`;
+      <div class="kakao-header">${esc(cfg.time||'오늘 오후 2:34')}</div>
+      <div class="bubble-left"><div class="bubble-name">${esc(cfg.sender||'청새치웹')}</div><div class="bubble">${esc(card.title)}</div></div>
+      ${card.image?`<div class="card-image-area" style="max-height:110px">${imgEl(card)}</div>`:''}
+      <div class="bubble-right"><div class="bubble">${esc(card.body)}</div></div>`;
   } else if (tpl === 'notion') {
     content.innerHTML = `
-      <div class="notion-tag"># 청새치웹</div>
-      <div class="notion-icon">📌</div>
-      <div class="card-title">${card.title}</div>
+      <div class="notion-tag">${esc(cfg.tag||'# 청새치웹')}</div>
+      <div class="notion-icon">${cfg.icon||'📌'}</div>
+      <div class="card-title">${esc(card.title)}</div>
       <div class="notion-divider"></div>
-      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-      <div class="card-body">${card.body}</div>`;
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+      <div class="card-body">${esc(card.body)}</div>`;
   } else if (tpl === 'news') {
-    const now = new Date().toLocaleDateString('ko-KR');
     content.innerHTML = `
-      <div class="news-header"><span>청새치웹 뉴스</span><span>${now}</span></div>
+      <div class="news-header"><span>${esc(cfg.brand||'청새치웹 뉴스')}</span><span>${now}</span></div>
       <div class="news-body">
-        <div class="card-title">${card.title}</div>
-        <div class="news-byline">청새치웹 기자 · 소상공인 전문</div>
+        <div class="card-title">${esc(card.title)}</div>
+        <div class="news-byline">${esc(cfg.byline||'청새치웹 기자 · 소상공인 전문')}</div>
         <div class="news-rule"></div>
-        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-        <div class="card-body">${card.body}</div>
+        ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+        <div class="card-body">${esc(card.body)}</div>
       </div>`;
   } else if (tpl === 'newspaper') {
-    const now = new Date().toLocaleDateString('ko-KR');
     content.innerHTML = `
-      <div class="np-masthead">청새치웹 DAILY · 소상공인을 위한 구조 이야기</div>
-      <div class="card-title">${card.title}</div>
-      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-      <div class="card-body">${card.body}</div>
+      <div class="np-masthead">${esc(cfg.masthead||'청새치웹 DAILY · 소상공인을 위한 구조 이야기')}</div>
+      <div class="card-title">${esc(card.title)}</div>
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+      <div class="card-body">${esc(card.body)}</div>
       <div class="np-date">${now}</div>`;
   } else if (tpl === 'memo') {
     content.innerHTML = `
       <div class="memo-line"></div>
-      <div class="card-title">${card.title}</div>
-      ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-      <div class="card-body">${card.body}</div>`;
+      <div class="card-title">${esc(card.title)}</div>
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+      <div class="card-body">${esc(card.body)}</div>`;
   } else if (tpl === 'receipt') {
-    const lines = card.body.split('\n').filter(l => l.trim());
-    const rows = lines.map(l => `<div class="receipt-row"><span>${l}</span></div>`).join('');
+    const lines = card.body.split('\n').filter(l=>l.trim());
+    const rows = lines.map(l=>`<div class="receipt-row"><span>${esc(l)}</span></div>`).join('');
     content.innerHTML = `
       <div class="receipt-header">
-        <div class="receipt-shop">청새치웹</div>
-        <div class="receipt-sub">시행착오는 내가, 결과는 당신이</div>
+        <div class="receipt-shop">${esc(cfg.shop||'청새치웹')}</div>
+        <div class="receipt-sub">${esc(cfg.sub||'홈페이지는 "구조"입니다')}</div>
       </div>
       <hr class="receipt-divider">
-      <div class="card-title">${card.title}</div>
+      <div class="card-title">${esc(card.title)}</div>
       <hr class="receipt-divider">
-      ${card.image ? `<div class="card-image-area" style="max-height:100px">${imgEl(card)}</div>` : ''}
+      ${card.image?`<div class="card-image-area" style="max-height:90px">${imgEl(card)}</div>`:''}
       ${rows}
       <hr class="receipt-divider">`;
   } else if (tpl === 'terminal') {
     content.innerHTML = `
       <div class="term-bar">
         <div class="term-dots"><div class="term-dot"></div><div class="term-dot"></div><div class="term-dot"></div></div>
-        <div class="term-title">cschi-web ~ content</div>
+        <div class="term-title">${esc(cfg.title||'cschi-web ~ content')}</div>
       </div>
       <div class="term-body">
         <div class="term-prompt">$ cat card_${idx+1}.md</div>
-        <div class="card-title">${card.title}<span class="term-cursor"></span></div>
-        ${card.image ? `<div class="card-image-area">${imgEl(card)}</div>` : ''}
-        <div class="card-body">${card.body}</div>
+        <div class="card-title">${esc(card.title)}<span class="term-cursor"></span></div>
+        ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+        <div class="card-body">${esc(card.body)}</div>
       </div>`;
   } else {
-    // minimal
+    // minimal — 이미지 없으면 placeholder 없음
     content.innerHTML = `
-      <div class="card-title">${card.title}</div>
-      <div class="card-image-area">
-        ${card.image ? imgEl(card) : `<div class="card-image-placeholder" onclick="document.getElementById('cardImgFile').click()">+ 이미지 추가</div>`}
-      </div>
-      <div class="card-body">${card.body}</div>`;
+      <div class="card-title">${esc(card.title)}</div>
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+      <div class="card-body">${esc(card.body)}</div>`;
   }
 
   el.appendChild(content);
@@ -745,29 +814,29 @@ function buildCard(card, idx) {
     wm.className = 'card-watermark';
     el.appendChild(wm);
   }
-
   return el;
 }
 
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+}
 function imgEl(card) {
-  const fitMap = { cover: 'cover', contain: 'contain', none: 'auto' };
+  const fitMap = { cover:'cover', contain:'contain', none:'auto' };
   return `<img src="${card.image}" style="object-fit:${fitMap[card.fit]||'cover'};width:100%;height:100%" alt="">`;
 }
 
 // ── Select card ──
 function selectCard(idx) {
   state.selectedIdx = idx;
-  document.querySelectorAll('.card').forEach((c, i) => {
-    c.classList.toggle('selected', i === idx);
-  });
+  document.querySelectorAll('.card').forEach((c,i) => c.classList.toggle('selected', i===idx));
   const card = state.cards[idx];
-  document.getElementById('editPanelTitle').textContent = `${idx + 1}장 편집${idx === 0 ? ' (썸네일)' : ''}`;
+  document.getElementById('editPanelTitle').textContent = `${idx+1}장 편집${idx===0?' (썸네일)':''}`;
   document.getElementById('editTitle').value = card.title;
   document.getElementById('editBody').value = card.body;
   const hasImg = !!card.image;
-  document.getElementById('imgRemoveBtn').style.display = hasImg ? 'inline-block' : 'none';
-  document.getElementById('fitControls').style.display = hasImg ? 'flex' : 'none';
-  document.querySelectorAll('.fit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit === card.fit));
+  document.getElementById('imgRemoveBtn').style.display = hasImg?'inline-block':'none';
+  document.getElementById('fitControls').style.display = hasImg?'flex':'none';
+  document.querySelectorAll('.fit-btn').forEach(b => b.classList.toggle('active', b.dataset.fit===card.fit));
 }
 
 // ── Edit ──
@@ -778,9 +847,8 @@ function applyEdit() {
   const strip = document.getElementById('cardsStrip');
   const wrapper = strip.children[idx];
   if (wrapper) {
-    const oldCard = wrapper.querySelector('.card');
-    const newCard = buildCard(state.cards[idx], idx);
-    wrapper.replaceChild(newCard, oldCard);
+    const old = wrapper.querySelector('.card');
+    wrapper.replaceChild(buildCard(state.cards[idx], idx), old);
   }
 }
 
@@ -793,8 +861,7 @@ function loadCardImage(input) {
     state.cards[idx].image = e.target.result;
     document.getElementById('imgRemoveBtn').style.display = 'inline-block';
     document.getElementById('fitControls').style.display = 'flex';
-    applyEdit();
-    input.value = '';
+    applyEdit(); input.value = '';
   };
   reader.readAsDataURL(file);
 }
@@ -817,20 +884,29 @@ async function downloadCard(idx) {
   const strip = document.getElementById('cardsStrip');
   const cardEl = strip.children[idx]?.querySelector('.card');
   if (!cardEl) return;
-  const canvas = await html2canvas(cardEl, { scale: 1080 / cardEl.offsetWidth, useCORS: true, backgroundColor: null });
+  const canvas = await html2canvas(cardEl, { scale: 1080/cardEl.offsetWidth, useCORS: true, backgroundColor: null });
+  const finalCanvas = document.createElement('canvas');
+  finalCanvas.width = 1080; finalCanvas.height = 1350;
+  const ctx = finalCanvas.getContext('2d');
+  ctx.drawImage(canvas, 0, 0, 1080, 1350);
   const a = document.createElement('a');
-  a.href = canvas.toDataURL('image/png');
+  a.href = finalCanvas.toDataURL('image/png');
   a.download = `cschi_card_${idx+1}.png`;
   a.click();
 }
 async function downloadSelected() { await downloadCard(state.selectedIdx); }
-async function downloadAll() { for (let i = 0; i < state.cards.length; i++) { await downloadCard(i); await new Promise(r => setTimeout(r, 300)); } }
+async function downloadAll() {
+  for (let i=0; i<state.cards.length; i++) {
+    await downloadCard(i);
+    await new Promise(r => setTimeout(r, 400));
+  }
+}
 
 // ── Caption ──
 function copyCaption() {
   navigator.clipboard.writeText(state.caption).then(() => {
-    const btn = [...document.querySelectorAll('.action-btn')].find(b => b.textContent.includes('캡션'));
-    if (btn) { btn.textContent = '✅ 복사됨'; setTimeout(() => { btn.textContent = '📋 캡션 복사'; }, 2000); }
+    const btn = [...document.querySelectorAll('.action-btn')].find(b=>b.textContent.includes('캡션'));
+    if (btn) { btn.textContent='✅ 복사됨'; setTimeout(()=>{btn.textContent='📋 캡션 복사';},2000); }
   });
 }
 </script>
