@@ -376,8 +376,9 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
         <div class="logo-text">청새치웹</div>
         <div class="logo-sub">콘텐츠 생성기</div>
       </div>
-      <button class="mob-toggle" onclick="toggleSidebar()" aria-label="메뉴 접기">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      <button class="mob-toggle" id="mobToggleBtn" onclick="toggleSidebar()" aria-label="메뉴 열고닫기">
+        <svg id="mobIconClose" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg id="mobIconOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       </button>
     </div>
 
@@ -536,7 +537,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
 
     <div class="caption-box" id="captionBox" style="display:none">
       <h2>인스타그램 캡션</h2>
-      <div class="caption-text" id="captionText"></div>
+      <textarea class="caption-text" id="captionText" oninput="state.caption=this.value" style="width:100%;min-height:160px;resize:vertical;border:none;outline:none;background:var(--bg);border-radius:var(--radius);padding:14px;font-family:var(--font);font-size:14px;line-height:1.8;color:var(--text);"></textarea>
     </div>
   </main>
 </div>
@@ -551,16 +552,19 @@ let state = {
     chrome: { url: '청새치웹.com' },
     kakao: { sender: '청새치웹', time: '오늘 오후 2:34' },
     notion: { tag: '# 청새치웹', icon: '📌' },
-    news: { brand: '청새치웹 뉴스', byline: '청새치웹 기자 · 소상공인 전문' },
+    news: { brand: '청새치웹 뉴스', byline: '청새치 기자 · 웹사이트 전문' },
     newspaper: { masthead: '청새치웹 DAILY · 소상공인을 위한 구조 이야기' },
-    receipt: { shop: '청새치웹', sub: '시행착오는 내가, 결과는 당신이' },
+    receipt: { shop: '청새치웹', sub: '홈페이지는 "구조"입니다' },
     terminal: { title: 'cschi-web ~ content' },
   }
 };
 
 // ── Mobile sidebar ──
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('mob-collapsed');
+  const sidebar = document.getElementById('sidebar');
+  const collapsed = sidebar.classList.toggle('mob-collapsed');
+  document.getElementById('mobIconClose').style.display = collapsed ? 'none' : '';
+  document.getElementById('mobIconOpen').style.display = collapsed ? '' : 'none';
 }
 
 // ── Type ──
@@ -700,7 +704,7 @@ function parseResult(text, topic) {
   document.getElementById('editPanel').style.display = 'block';
   document.getElementById('actionsRow').style.display = 'flex';
   document.getElementById('captionBox').style.display = 'block';
-  document.getElementById('captionText').textContent = captionRaw;
+  document.getElementById('captionText').value = captionRaw;
 
   renderCards();
   renderTplSettings();
@@ -718,6 +722,36 @@ function renderCards() {
     wrapper.appendChild(buildCard(card, i));
     strip.appendChild(wrapper);
   });
+  // 렌더 후 텍스트 자동 크기 조정
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.card').forEach(autoFitText);
+  });
+}
+
+function autoFitText(cardEl) {
+  const title = cardEl.querySelector('.card-title');
+  const body = cardEl.querySelector('.card-body');
+  const content = cardEl.querySelector('.card-content');
+  if (!content) return;
+
+  // 제목 축소 (최소 11px)
+  if (title) {
+    let size = 17;
+    title.style.fontSize = size + 'px';
+    while (content.scrollHeight > content.clientHeight && size > 11) {
+      size -= 0.5;
+      title.style.fontSize = size + 'px';
+    }
+  }
+  // 본문 축소 (최소 9px)
+  if (body) {
+    let size = 13;
+    body.style.fontSize = size + 'px';
+    while (content.scrollHeight > content.clientHeight && size > 9) {
+      size -= 0.5;
+      body.style.fontSize = size + 'px';
+    }
+  }
 }
 
 function buildCard(card, idx) {
@@ -753,8 +787,8 @@ function buildCard(card, idx) {
     content.innerHTML = `
       <div class="kakao-header">${esc(cfg.time||'오늘 오후 2:34')}</div>
       <div class="bubble-left"><div class="bubble-name">${esc(cfg.sender||'청새치웹')}</div><div class="bubble" ${tStyle}>${esc(card.title)}</div></div>
-      ${card.image?`<div class="card-image-area" style="max-height:110px">${imgEl(card)}</div>`:''}
-      <div class="bubble-right"><div class="bubble" ${bStyle}>${esc(card.body)}</div></div>`;
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
+      ${card.body.trim()?`<div class="bubble-right"><div class="bubble" ${bStyle}>${esc(card.body)}</div></div>`:''}`;
   } else if (tpl === 'notion') {
     content.innerHTML = `
       <div class="notion-tag">${esc(cfg.tag||'# 청새치웹')}</div>
@@ -797,7 +831,7 @@ function buildCard(card, idx) {
       <hr class="receipt-divider">
       <div class="card-title" ${tStyle}>${esc(card.title)}</div>
       <hr class="receipt-divider">
-      ${card.image?`<div class="card-image-area" style="max-height:90px">${imgEl(card)}</div>`:''}
+      ${card.image?`<div class="card-image-area">${imgEl(card)}</div>`:''}
       ${rows}
       <hr class="receipt-divider">`;
   } else if (tpl === 'terminal') {
