@@ -150,6 +150,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
   transition: border-color 0.15s; flex-shrink: 0;
 }
 .card.selected { border-color: var(--brand); }
+.card-bg { position: absolute; inset: 0; }
 .card-content {
   position: absolute; inset: 0;
   display: flex; flex-direction: column;
@@ -519,9 +520,15 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
         </div>
         <div>
           <label>카드 이미지</label>
-          <div class="img-upload-btn" onclick="document.getElementById('cardImgFile').click()">＋ 이미지 추가</div>
+          <div class="img-upload-btn" onclick="document.getElementById('cardImgFile').click()">＋ 파일에서 추가</div>
           <input type="file" id="cardImgFile" accept="image/*" style="display:none" onchange="loadCardImage(this)">
-          <div style="font-size:11px;color:var(--text-faint);margin-top:5px;">Ctrl+V 로 클립보드 이미지 바로 붙여넣기 가능</div>
+          <div id="pasteZone" style="margin-top:6px;border:1.5px dashed var(--border);border-radius:var(--radius);padding:10px;text-align:center;font-size:12px;color:var(--text-faint);cursor:pointer;transition:all 0.15s;"
+            onclick="this.focus()" tabindex="0"
+            onpaste="handlePasteZone(event)"
+            onfocus="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'"
+            onblur="this.style.borderColor='';this.style.color=''">
+            여기 클릭 후 Ctrl+V 로 붙여넣기
+          </div>
           <span class="img-remove" id="imgRemoveBtn" style="display:none" onclick="removeCardImage()">이미지 삭제</span>
           <div class="fit-controls" id="fitControls" style="display:none">
             <button class="fit-btn active" data-fit="cover" onclick="setFit(this)">채우기</button>
@@ -897,7 +904,29 @@ function applyEdit() {
 }
 
 // ── Clipboard paste image ──
+function handlePasteZone(e) {
+  const items = e.clipboardData?.items;
+  if (!items) return;
+  for (const item of items) {
+    if (item.type.startsWith('image/')) {
+      const file = item.getAsFile();
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const idx = state.selectedIdx;
+        if (state.cards.length === 0) return;
+        state.cards[idx].image = ev.target.result;
+        document.getElementById('imgRemoveBtn').style.display = 'inline-block';
+        document.getElementById('fitControls').style.display = 'flex';
+        applyEdit();
+      };
+      reader.readAsDataURL(file);
+      break;
+    }
+  }
+}
+
 document.addEventListener('paste', e => {
+  if (e.target.id === 'pasteZone') return; // pasteZone이 직접 처리
   const items = e.clipboardData?.items;
   if (!items) return;
   for (const item of items) {
