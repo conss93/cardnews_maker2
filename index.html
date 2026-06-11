@@ -522,7 +522,7 @@ select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmln
           <label>카드 이미지</label>
           <div class="img-upload-btn" onclick="document.getElementById('cardImgFile').click()">＋ 파일에서 추가</div>
           <input type="file" id="cardImgFile" accept="image/*" style="display:none" onchange="loadCardImage(this)">
-          <div id="pasteZone" style="margin-top:6px;border:1.5px dashed var(--border);border-radius:var(--radius);padding:10px;text-align:center;font-size:12px;color:var(--text-faint);cursor:pointer;transition:all 0.15s;"
+          <div id="pasteZone" style="margin-top:6px;border:1.5px dashed var(--border);border-radius:var(--radius);padding:10px;text-align:center;font-size:12px;color:var(--text-faint);cursor:pointer;transition:all 0.15s;display:none;"
             onclick="this.focus()" tabindex="0"
             onpaste="handlePasteZone(event)"
             onfocus="this.style.borderColor='var(--brand)';this.style.color='var(--brand)'"
@@ -906,8 +906,12 @@ function applyEdit() {
 // ── Mobile detection ──
 const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 document.addEventListener('DOMContentLoaded', () => {
+  const pasteZone = document.getElementById('pasteZone');
   const label = document.getElementById('pasteZoneLabel');
-  if (label) label.textContent = isMobile ? '여기 길게 눌러서 붙여넣기' : '여기 클릭 후 Ctrl+V 로 붙여넣기';
+  if (!isMobile && pasteZone) {
+    pasteZone.style.display = 'block';
+    if (label) label.textContent = '여기 클릭 후 Ctrl+V 로 붙여넣기';
+  }
 });
 
 // ── Clipboard paste image ──
@@ -986,7 +990,10 @@ async function downloadCard(idx) {
   const strip = document.getElementById('cardsStrip');
   const cardEl = strip.children[idx]?.querySelector('.card');
   if (!cardEl) return;
+  const wasSelected = cardEl.classList.contains('selected');
+  cardEl.classList.remove('selected');
   const canvas = await html2canvas(cardEl, { scale: 1080/cardEl.offsetWidth, useCORS: true, backgroundColor: null });
+  if (wasSelected) cardEl.classList.add('selected');
   const finalCanvas = document.createElement('canvas');
   finalCanvas.width = 1080; finalCanvas.height = 1350;
   const ctx = finalCanvas.getContext('2d');
