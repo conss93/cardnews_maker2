@@ -33,7 +33,7 @@ export default async function handler(req, res) {
 
 [브랜드 정보]
 - 브랜드명: 청새치웹
-- 슬로건: 홈페이지는 "구조"입니다
+- 슬로건: 홈페이지는 '구조'입니다
 - 브랜드 컬러: #1A5BB5 (파란색)
 - 운영자: 데빈 (제주 기반, HR 직장인 + 웹디자인/브랜딩 사이드 비즈니스)
 
@@ -71,7 +71,7 @@ export default async function handler(req, res) {
         'anthropic-version': '2023-06-01',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'claude-sonnet-4-6',
         max_tokens: 2000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
